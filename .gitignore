@@ -1,0 +1,6 @@
+# ignore thsese files for commit and push
+
+.env
+.venv
+config.ini
+__pycache__

@@ -17,11 +17,28 @@ target_cursor.execute(query_3)
 target_cursor.execute(query_4)
 myconnection.commit()
 
-
 src_appt_desc = 'SELECT * FROM CodeConsultation'
 src_appt_desc_df = pd.read_sql(src_appt_desc, get_src_accessdb_connection())
 
-src_appt_desc_df1 = src_appt_desc_df[['ConsultationCode', 'ConsultationDescription', 'DefaultCharge','EDIConsultationCode']]
+src_consultation = 'SELECT ConsultationCode FROM Consultations'
+src_consultation_df = pd.read_sql(src_consultation, get_src_accessdb_connection())
+
+src_consultation_df = src_consultation_df.drop_duplicates(subset=['ConsultationCode']).reset_index(drop=True)
+
+landing_appt_desc = """
+SELECT ConsultationCode, ConsultationDescription, DefaultCharge,EDIConsultationCode FROM src_appt_desc_df
+UNION
+SELECT 'From Consultation'||'-'||ConsultationCode AS ConsultationCode, ConsultationCode as ConsultationDescription,NULL,NULL FROM src_consultation_df
+"""
+landing_appt_desc_df = ps.sqldf(landing_appt_desc)
+
+landing_appt_desc_df['ConsultationDescription'] = landing_appt_desc_df['ConsultationDescription'].str.strip()
+landing_appt_desc_df['ConsultationDescription_Upper'] = landing_appt_desc_df['ConsultationDescription'].str.upper()
+landing_appt_desc_df = landing_appt_desc_df.drop_duplicates(subset=['ConsultationDescription_Upper'],keep='first').reset_index(drop=True)
+landing_appt_desc_df = landing_appt_desc_df.drop(columns=['ConsultationDescription_Upper'])
+landing_appt_desc_df = landing_appt_desc_df.dropna(subset=['ConsultationDescription'])
+
+src_appt_desc_df1 = landing_appt_desc_df[['ConsultationCode', 'ConsultationDescription', 'DefaultCharge','EDIConsultationCode']]
 
 src_appt_desc_df1['is_archive'] = src_appt_desc_df1.apply(lambda x: 0 if pd.notnull(x['EDIConsultationCode']) else 1, axis=1)
 

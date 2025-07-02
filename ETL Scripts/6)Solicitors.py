@@ -12,8 +12,10 @@ src_solicitor_df = pd.read_sql(src_solicitor, get_src_accessdb2_connection())
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
 target_cursor.execute(query_1)
-query_2 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_Solicitor_Id VARCHAR(100) DEFAULT NULL;"
+query_2 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_solicitor_Id VARCHAR(100) DEFAULT NULL;"
+query_3 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_solicitor VARCHAR(100) DEFAULT NULL;"
 target_cursor.execute(query_2)
+target_cursor.execute(query_3)
 myconnection.commit()
 
 #solicitor_id generation
@@ -34,15 +36,6 @@ solicitor_df['title_id'] = solicitor_df['title_id'].fillna(0).astype(int)
 bar = tqdm(total=len(src_solicitor_df),desc='Inserting solicitors',position=0)
 
 tgt_solicitor_df = pd.read_sql('SELECT DISTINCT PPM_solicitor_Id FROM contacts', myconnection)
-
-#Adding Source identifier column in target
-query_1 = "SET sql_mode = ''"
-target_cursor.execute(query_1)
-query_2 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_solicitor_Id VARCHAR(100) DEFAULT NULL;"
-query_3 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_solicitor VARCHAR(100) DEFAULT NULL;"
-target_cursor.execute(query_2)
-target_cursor.execute(query_3)
-myconnection.commit()
 
 #solicitor_df['display_name'] =  solicitor_df['SolicitorsInitials'].fillna('') + ' ' + solicitor_df['SolicitorsName'].fillna('') 
 

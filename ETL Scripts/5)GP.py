@@ -35,13 +35,6 @@ bar = tqdm(total=len(src_gp_df),desc='Inserting GPs',position=0)
 
 tgt_gp_df = pd.read_sql('SELECT DISTINCT PPM_GP_Id FROM contacts', myconnection)
 
-#Adding Source identifier column in target
-query_1 = "SET sql_mode = ''"
-target_cursor.execute(query_1)
-query_2 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_GP_Id VARCHAR(100) DEFAULT NULL;"
-target_cursor.execute(query_2)
-myconnection.commit()
-
 gp_df['display_name'] =  (gp_df['GPInitials'].fillna('') + ' ' + gp_df['GPName']).str.strip()
 
 for index, row in gp_df.iterrows():

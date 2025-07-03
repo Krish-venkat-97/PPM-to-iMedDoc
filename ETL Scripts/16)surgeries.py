@@ -86,7 +86,7 @@ landing_surgery_df5 = landing_surgery_df4[landing_surgery_df4['patient_id'].notn
 
 #---------------------episode mapping---------------------
 landing_surgery_df5['patient_id'] = landing_surgery_df5['patient_id'].astype(int)
-tgt_episode_df = pd.read_sql("SELECT id as episode_id,patient_id FROM episodes WHERE name = 'General'", myconnection)
+tgt_episode_df = pd.read_sql("SELECT id as episode_id,patient_id FROM episodes WHERE episodes.name = 'General'", myconnection)
 tgt_episode_df['patient_id'] = tgt_episode_df['patient_id'].astype(int)
 landing_surgery_df5 = dd.merge(landing_surgery_df5, tgt_episode_df, on='patient_id', how='left')
 

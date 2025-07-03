@@ -53,7 +53,7 @@ for index, row in titles_df1.iterrows():
         target_cursor.execute(query)
         
     except Exception as e:
-        print(f"Error inserting title {row['title']}: {e}")
+        logging.error(f"Error inserting title {row['title']}: {e}")
         break
 
 myconnection.commit()

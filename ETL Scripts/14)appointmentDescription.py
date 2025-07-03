@@ -121,7 +121,7 @@ for index, row in landing_appt_desc_df.iterrows():
         """
         target_cursor.execute(app_desc_proc_insert)
     except Exception as e:
-        print(f"Error inserting row {index}: {e}")
+        logging.error(f"Error inserting row {index}: {e}")
         break
 
 myconnection.commit()
@@ -151,7 +151,7 @@ for index, row in landing_surgery_desc_df.iterrows():
         """
         target_cursor.execute(procedure_insert)
     except Exception as e:
-        print(f"Error inserting surgery row {index}: {e}")
+        logging.error(f"Error inserting surgery row {index}: {e}")
         break
 
 myconnection.commit()

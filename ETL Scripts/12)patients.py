@@ -178,7 +178,7 @@ for index,row in patient_df3.iterrows():
         target_cursor.execute(sql5)
         
     except Exception as e:
-        print(f"Error inserting row {index}: {e}")
+        logging.error(f"Error inserting row {index}: {e}")
         break
 
 myconnection.commit()

@@ -61,7 +61,7 @@ for index, row in src_solicitor_df.iterrows():
         """
         target_cursor.execute(query)
     except Exception as e:
-        print(f"Error inserting row {index}: {e}")
+        logging.error(f"Error inserting row {index}: {e}")
         break
     #else:
         #continue

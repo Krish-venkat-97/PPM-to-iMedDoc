@@ -10,6 +10,7 @@ import logging
 import pyodbc
 import warnings
 import dask.dataframe as dd
+from datetime import datetime
 
 __all__ = [
     'ConfigParser',
@@ -23,5 +24,7 @@ __all__ = [
     'logging',
     'pyodbc',
     'warnings',
-    'dd'
+    'dd',
+    'datetime',
+    'logging'
 ]

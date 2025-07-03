@@ -62,7 +62,7 @@ for index, row in doctor_df.iterrows():
             """
             target_cursor.execute(query)
         except Exception as e:
-            print(f"Error inserting doctor {row['ResourceId']}: {e}")
+            logging.error(f"Error inserting doctor {row['ResourceId']}: {e}")
             break
 
 myconnection.commit()

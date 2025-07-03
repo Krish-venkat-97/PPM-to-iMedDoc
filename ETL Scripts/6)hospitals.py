@@ -48,7 +48,7 @@ for index, row in src_hospital_df.iterrows():
         """
         target_cursor.execute(query)
     except Exception as e:
-        print(f"Error inserting hospital {row['LocationName']}: {e}")
+        logging.error(f"Error inserting hospital {row['LocationName']}: {e}")
         break
 
 myconnection.commit()

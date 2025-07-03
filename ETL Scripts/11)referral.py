@@ -9,8 +9,6 @@ warnings.filterwarnings("ignore")
 src_referral = 'SELECT * FROM CodeSpecialists'
 src_referral_df = pd.read_sql(src_referral, get_src_accessdb2_connection())
 
-print(src_referral_df.columns)
-
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
 target_cursor.execute(query_1)
@@ -18,7 +16,7 @@ query_2 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_referral_Id VARCHAR
 target_cursor.execute(query_2)
 myconnection.commit()
 
-#solicitor_id generation
+#referral_id generation
 referral_max = 'SELECT MAX(id) FROM contacts'
 referral_max_df = pd.read_sql(referral_max,myconnection)
 if referral_max_df is None or referral_max_df.iloc[0, 0] is None:

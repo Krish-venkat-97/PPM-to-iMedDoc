@@ -16,7 +16,7 @@ query_2 = "ALTER TABLE contacts ADD COLUMN IF NOT EXISTS PPM_Anaesth_Id VARCHAR(
 target_cursor.execute(query_2)
 myconnection.commit()
 
-#solicitor_id generation
+#anaesth_id generation
 anaesth_max = 'SELECT MAX(id) FROM contacts'
 anaesth_max_df = pd.read_sql(anaesth_max,myconnection)
 if anaesth_max_df is None or anaesth_max_df.iloc[0, 0] is None:

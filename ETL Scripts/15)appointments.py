@@ -64,7 +64,7 @@ tgt_appointment_description_df['AppointmentType_Upper'] = tgt_appointment_descri
 landing_appointment_df2 = dd.merge(landing_appointment_df1, tgt_appointment_description_df, on='AppointmentType_Upper', how='left')
 
 #---------------------doctor mapping---------------------
-src_appointment_df1['ResourceCode'] = src_appointment_df1['ResourceCode'].astype(int)
+landing_appointment_df2['ResourceCode'] = landing_appointment_df2['ResourceCode'].astype(int)
 tgt_doctor_df = pd.read_sql("SELECT id as doctor_id,PPM_Doctor_Id FROM doctors WHERE PPM_Doctor_Id IS NOT NULL", myconnection)
 tgt_doctor_df['PPM_Doctor_Id'] = tgt_doctor_df['PPM_Doctor_Id'].astype(int)
 landing_appointment_df3 = dd.merge(landing_appointment_df2, tgt_doctor_df, left_on='ResourceCode', right_on='PPM_Doctor_Id', how='left')
@@ -109,10 +109,13 @@ else:
     max_id = appointment_max_df.iloc[0, 0] + 1
 landing_appointment_df6.insert(0,'appointment_id',range(max_id,max_id+len(landing_appointment_df6)))
 
+#---------------------filtering out rows already present in target database ---------------------
+landing_appointment_df7 = landing_appointment_df6[~landing_appointment_df6['ID'].isin(pd.read_sql("SELECT PPM_Appointment_Id FROM appointments WHERE PPM_Appointment_Id IS NOT NULL", myconnection)['PPM_Appointment_Id'])]
+
 #---------------------Inserting appointments into target database---------------------
 appointment_bar = tqdm(total = len(landing_appointment_df6), desc='Inserting appointments')
 
-for index,row in landing_appointment_df6.iterrows():
+for index,row in landing_appointment_df7.iterrows():
     appointment_bar.update(1)
     try:
         appointment_insert = f"""

@@ -26,12 +26,12 @@ tgt_patient_df = pd.read_sql(tgt_patient, myconnection)
 
 tgt_patient_df['PPM_Patient_Id'] = tgt_patient_df['PPM_Patient_Id'].astype(int)
 
-tgt_contact_gp1 = 'SELECT id as gp_contact_id1, 1 as prim, PPM_GP_Id as PPM_GP_Id1 FROM contacts WHERE contact_type_id = 3'
+tgt_contact_gp1 = 'SELECT id as gp_contact_id1, 1 as prim, PPM_GP_Id as PPM_GP_Id1 FROM contacts WHERE contact_type_id = 3 AND PPM_GP_Id IS NOT NULL'
 tgt_contact_gp_df1 = pd.read_sql(tgt_contact_gp1, myconnection)
 
 tgt_contact_gp_df1['PPM_GP_Id1'] = tgt_contact_gp_df1['PPM_GP_Id1'].astype(int)
 
-tgt_contact_gp2 = 'SELECT id as gp_contact_id2, 0 as prim, PPM_GP_Id as PPM_GP_Id2 FROM contacts WHERE contact_type_id = 3'
+tgt_contact_gp2 = 'SELECT id as gp_contact_id2, 0 as prim, PPM_GP_Id as PPM_GP_Id2 FROM contacts WHERE contact_type_id = 3 AND PPM_GP_Id IS NOT NULL AND PPM_GP_Id != "From_InvoiceHeadSummary"'
 tgt_contact_gp_df2 = pd.read_sql(tgt_contact_gp2, myconnection)
 
 tgt_contact_gp_df2['PPM_GP_Id2'] = tgt_contact_gp_df2['PPM_GP_Id2'].astype(int)

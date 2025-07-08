@@ -7,7 +7,7 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_billTo_df = pd.DataFrame(
-    ('Hospital','Specalist'),
+    ('GP','Hospital','Specalist'),
     columns=['billTo']
 )
 
@@ -19,6 +19,12 @@ if billTo_max_df is None or billTo_max_df.iloc[0, 0] is None:
 else:
     max_id = billTo_max_df.iloc[0, 0] + 1
 src_billTo_df.insert(0, 'bill_to_id', range(max_id, max_id + len(src_billTo_df)))
+
+#------------------------filtering out existing billTo-------------------
+tgt_billTo_df = pd.read_sql("SELECT id as bill_to_id, name as billTo FROM bill_to", myconnection)
+src_billTo_df['billTo_Upper'] = src_billTo_df['billTo'].str.upper().str.strip()
+src_billTo_df = src_billTo_df[~src_billTo_df['billTo_Upper'].isin(tgt_billTo_df['billTo'].str.upper().str.strip())]
+src_billTo_df = src_billTo_df.drop(columns=['billTo_Upper']).reset_index(drop=True)
 
 #-----------------------inserting billTo into target database---------------------
 bar = tqdm(total=len(src_billTo_df), desc='Inserting Bill To')

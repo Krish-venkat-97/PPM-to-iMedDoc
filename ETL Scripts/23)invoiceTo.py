@@ -7,7 +7,7 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_billTo_df = pd.DataFrame(
-    ('GP','Hospital','Specalist'),
+    ('GP','Hospital','Specialist','alt billing'),
     columns=['billTo']
 )
 

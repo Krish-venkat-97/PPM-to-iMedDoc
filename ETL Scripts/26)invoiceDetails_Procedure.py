@@ -20,12 +20,14 @@ landing_procedure_df = landing_procedure_df.drop(columns=['PPM_Invoice_Id','Invo
 
 src_procedure_trans = 'SELECT * FROM ProcedureTrans'
 src_procedure_trans_df = pd.read_sql(src_procedure_trans, get_src_accessdb_connection())
-src_procedure_trans_df = src_procedure_trans_df[['ProcTransID','ProcedureDate','ProcedureCode','ProcedureDescription','SurgeonsFee']]
+src_procedure_trans_df = src_procedure_trans_df[['ProcTransID','ProcedureDate','ProcedureCode','ProcedureDescription','SurgeonsFee','VATAmount']]
 src_procedure_trans_df = src_procedure_trans_df.rename(columns={'ProcTransID': 'ProcID'})
 
-#----------------Concating ProcedureTrans with Procedures-------------------
-landing_procedure_df2 = pd.concat([landing_procedure_df, src_procedure_trans_df], ignore_index=True)
-landing_procedure_df2['invoice_id'] = landing_procedure_df2.groupby('ProcID')['invoice_id'].ffill()
+
+#-----------------------------including the invoicenumber in the src_procedure_trans_df--------------------------
+landing_procedure_df['ProcID'] = landing_procedure_df['ProcID'].astype(int)
+src_procedure_trans_df['ProcID'] = src_procedure_trans_df['ProcID'].astype(int)
+landing_procedure_df2 = dd.merge(landing_procedure_df,src_procedure_trans_df, on='ProcID', how='inner')
 
 #----------------------invoice date-----------------
 def invoiceDate(row):
@@ -56,6 +58,9 @@ myconnection.commit()
 tgt_invoice_details_df = pd.read_sql('SELECT DISTINCT PPM_Invoice_Proc_Id FROM invoice_details WHERE PPM_Invoice_Proc_Id IS NOT NULL', myconnection)
 invoice_procedure_df = landing_procedure_df2[~landing_procedure_df2['ProcID'].isin(tgt_invoice_details_df['PPM_Invoice_Proc_Id'])]
 
+#-----------------------------amount-------------------------------
+invoice_procedure_df['amount'] = invoice_procedure_df['SurgeonsFee'] - invoice_procedure_df['VATAmount']
+
 bar = tqdm(total=len(invoice_procedure_df), desc='Inserting Invoice Details from Procedures')
 
 for index, row in invoice_procedure_df.iterrows():
@@ -63,7 +68,7 @@ for index, row in invoice_procedure_df.iterrows():
     try:
         query = f"""
         INSERT INTO `invoice_details` (id, `invoice_id`, `procedure_date`, `procedure_id`, `procedure_code`, `procedure_name`, `service_location_id`, `qty`, `amount`, `total`, `inv_fee_split_percentage`, `inv_fee_split_amount`, `created_at`, `updated_at`, `deleted_at`, PPM_Invoice_Proc_Id) 
-        VALUES ({safe_value(row['invoice_details_id'])}, {safe_value(row['invoice_id'])}, {safe_value(row['ProcedureDate'])}, NULL, {safe_value(row['ProcedureCode'])}, {safe_value(row['ProcedureDescription'])}, NULL, 1.00, {safe_value(row['SurgeonsFee'])}, {safe_value(row['SurgeonsFee'])}, 0.00, 0.00, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL, {safe_value(row['ProcID'])});
+        VALUES ({safe_value(row['invoice_details_id'])}, {safe_value(row['invoice_id'])}, {safe_value(row['ProcedureDate'])}, NULL, {safe_value(row['ProcedureCode'])}, {safe_value(row['ProcedureDescription'])}, NULL, 1.00, {safe_value(row['amount'])}, 0.00, 0.00, 0.00, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL, {safe_value(row['ProcID'])});
         """
         target_cursor.execute(query)
     except Exception as e:

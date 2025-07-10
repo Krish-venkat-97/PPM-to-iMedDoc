@@ -9,12 +9,26 @@ warnings.filterwarnings("ignore")
 src_invoices = 'SELECT * FROM InvoiceHeadSummary'
 src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
 
-src_tax_df = src_invoices_df[src_invoices_df['VATRate'] != 0]['VATRate'].drop_duplicates().reset_index(drop=True)
-src_tax_df = src_tax_df.to_frame(name='VATRate')
-src_tax_df = src_tax_df[src_tax_df['VATRate'].notna()]
-src_tax_df['VATRate'] = src_tax_df['VATRate'].astype(float)
-src_tax_df['VATPercent'] = src_tax_df['VATRate'].apply(lambda x: x*100)
-src_tax_df['VATName'] = src_tax_df['VATRate'].apply(lambda x: f"{x*100:.2f}% VAT")
+src_receipt = 'SELECT * FROM "Payments Received"'
+src_receipt_df = pd.read_sql(src_receipt, get_src_accessdb_connection())
+
+#------------------------invoice tax----------------------------------
+src_invoice_tax_df = src_invoices_df[src_invoices_df['VATRate'] != 0]['VATRate'].drop_duplicates().reset_index(drop=True)
+src_invoice_tax_df = src_invoice_tax_df.to_frame(name='VATRate')
+src_invoice_tax_df = src_invoice_tax_df[src_invoice_tax_df['VATRate'].notna()]
+src_invoice_tax_df['VATRate'] = src_invoice_tax_df['VATRate'].astype(float)
+src_invoice_tax_df['VATPercent'] = src_invoice_tax_df['VATRate'].apply(lambda x: x*100)
+src_invoice_tax_df['VATName'] = src_invoice_tax_df['VATRate'].apply(lambda x: f"{x*100:.2f}% VAT")
+
+#----------------------receipt tax---------------------------------
+src_receipt_tax_df = src_receipt_df[src_receipt_df['VATRate'] != 0]['VATRate'].drop_duplicates().reset_index(drop=True)
+src_receipt_tax_df = src_receipt_tax_df.to_frame(name='VATRate')
+src_receipt_tax_df = src_receipt_tax_df[src_receipt_tax_df['VATRate'].notna()]
+src_receipt_tax_df['VATRate'] = src_receipt_tax_df['VATRate'].astype(float)
+src_receipt_tax_df['VATPercent'] = src_receipt_tax_df['VATRate'].apply(lambda x: x*100)
+src_receipt_tax_df['VATName'] = src_receipt_tax_df['VATRate'].apply(lambda x: f"{x*100:.2f}% VAT")
+
+src_tax_df = pd.concat([src_invoice_tax_df, src_receipt_tax_df], ignore_index=True)
 
 #-------------------id generation-------------------
 tax_max = 'SELECT MAX(id) FROM taxes'

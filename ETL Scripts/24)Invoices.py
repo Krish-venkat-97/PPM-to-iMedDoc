@@ -189,6 +189,9 @@ query_2 = "ALTER TABLE invoices ADD COLUMN IF NOT EXISTS PPM_Invoice_Id VARCHAR(
 target_cursor.execute(query_2)
 myconnection.commit()
 
+#-------------------------------grand total---------------------------
+invoice_df['GrandTotal'] = invoice_df['TotalValue'] - invoice_df['VATAmount']
+
 #-------------------------------inserting into target-----------------------------
 bar = tqdm(total=len(invoice_df), desc='Inserting Invoices from InvoiceHeadSummary')
 
@@ -219,7 +222,7 @@ for index, row in invoice_df.iterrows():
             {safe_value(row['VATRate'])}, 
             {safe_value(row['VATAmount'])}, 
             NULL, 
-            {safe_value(row['TotalValue'])}, 
+            {safe_value(row['GrandTotal'])}, 
             {safe_value(row['TotalValue'])}, 
             {safe_value(row['Balance'])}, 
             {safe_value(row['EDIClaim_Status'])}, 

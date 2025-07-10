@@ -13,7 +13,7 @@ src_consultation = 'SELECT * FROM Consultations'
 src_consultation_df = pd.read_sql(src_consultation, get_src_accessdb_connection())
 src_consultation_df = src_consultation_df[src_consultation_df['InvoiceNumber'] != 0]
 src_consultation_df['InvoiceNumber'] = src_consultation_df['InvoiceNumber'].astype(int)
-src_consultation_df = src_consultation_df[['ConsID','InvoiceNumber','ConsultationDate','ConsultationCode','ConsultationCharge']]
+src_consultation_df = src_consultation_df[['ConsID','InvoiceNumber','ConsultationDate','ConsultationCode','ConsultationCharge','VATRate','VATAmount']]
 
 landing_consultation_df = dd.merge(src_consultation_df, tgt_invoice_df, left_on='InvoiceNumber', right_on='PPM_Invoice_Id', how='inner')
 landing_consultation_df = landing_consultation_df.rename(columns={'tgt_invoice_id': 'invoice_id'})
@@ -21,7 +21,7 @@ landing_consultation_df = landing_consultation_df.drop(columns=['PPM_Invoice_Id'
 
 src_consultation_trans = 'SELECT * FROM ConsultationTrans'
 src_consultation_trans_df = pd.read_sql(src_consultation_trans, get_src_accessdb_connection())
-src_consultation_trans_df = src_consultation_trans_df[['ConsTransID','ConsultationDate','InterventionCode','InterventionCharge']]
+src_consultation_trans_df = src_consultation_trans_df[['ConsTransID','ConsultationDate','InterventionCode','InterventionCharge','VATRate','VATAmount']]
 src_consultation_trans_df = src_consultation_trans_df.rename(columns={'ConsTransID': 'ConsID','InterventionCode':'ConsultationCode','InterventionCharge': 'ConsultationCharge'})
 
 #----------------Concating ConsultationTrans with Consultations-------------------
@@ -57,6 +57,9 @@ myconnection.commit()
 tgt_invoice_details_df = pd.read_sql('SELECT DISTINCT PPM_Invoice_Cons_Id FROM invoice_details WHERE PPM_Invoice_Cons_Id IS NOT NULL', myconnection)
 invoice_consultation_df = landing_consultation_df2[~landing_consultation_df2['ConsID'].isin(tgt_invoice_details_df['PPM_Invoice_Cons_Id'])]
 
+#-----------------------------amount-------------------------------
+invoice_consultation_df['amount'] = invoice_consultation_df['ConsultationCharge'] - invoice_consultation_df['VATAmount']
+
 bar = tqdm(total=len(invoice_consultation_df), desc='Inserting Invoice Details from Consultations')
 
 for index,row in invoice_consultation_df.iterrows():
@@ -64,7 +67,7 @@ for index,row in invoice_consultation_df.iterrows():
     try:
         query = f"""
         INSERT INTO `invoice_details` (id,`invoice_id`, `procedure_date`, `procedure_id`, `procedure_code`, `procedure_name`, `service_location_id`, `qty`, `amount`, `total`, `inv_fee_split_percentage`, `inv_fee_split_amount`, `created_at`, `updated_at`, `deleted_at`,PPM_Invoice_Cons_Id) 
-        VALUES ({safe_value(row['invoice_details_id'])},{safe_value(row['invoice_id'])}, {safe_value(row['ConsultationDate'])}, NULL, NULL, {safe_value(row['ConsultationCode'])}, NULL, 1.00, {safe_value(row['ConsultationCharge'])}, {safe_value(row['ConsultationCharge'])}, 0.00, 0.00, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,{safe_value(row['ConsID'])});
+        VALUES ({safe_value(row['invoice_details_id'])},{safe_value(row['invoice_id'])}, {safe_value(row['ConsultationDate'])}, NULL, NULL, {safe_value(row['ConsultationCode'])}, NULL, 1.00, {safe_value(row['amount'])}, 0.00, 0.00, 0.00, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,{safe_value(row['ConsID'])});
         """
         target_cursor.execute(query)
     except Exception as e:

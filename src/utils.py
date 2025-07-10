@@ -72,3 +72,12 @@ if __name__ == "__main__":
         connection2.close()
     else:
        pass
+
+def getSourceFilePath():
+    return config['source_file_path']['source_file_path']
+
+def getTargetFilePath():
+    return config['target_file_path']['target_file_path']
+
+def getLogFilePath():
+    return config['log_directory']['log_directory']

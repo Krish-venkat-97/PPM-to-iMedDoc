@@ -9,6 +9,9 @@ warnings.filterwarnings("ignore")
 src_documents = 'SELECT * FROM PatientDocHistory'
 src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
 
+#-----------------------------filterinig out the rows with SubDirectory = None--------------
+src_documents_df = src_documents_df[~src_documents_df['SubDirectory'].isna()] 
+
 def getFileExtension(filename):
     if pd.isna(filename):
         return None

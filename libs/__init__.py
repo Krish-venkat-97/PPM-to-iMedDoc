@@ -11,6 +11,8 @@ import pyodbc
 import warnings
 import dask.dataframe as dd
 from datetime import datetime
+import shutil
+import glob
 
 __all__ = [
     'ConfigParser',
@@ -26,5 +28,7 @@ __all__ = [
     'warnings',
     'dd',
     'datetime',
-    'logging'
+    'logging',
+    'shutil',
+    'glob'
 ]

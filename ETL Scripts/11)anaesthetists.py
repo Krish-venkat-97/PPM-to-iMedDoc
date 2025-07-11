@@ -37,43 +37,47 @@ bar = tqdm(total=len(src_anaesth_df),desc='Inserting anaesth',position=0)
 
 tgt_solicitor_df = pd.read_sql('SELECT DISTINCT PPM_Anaesth_Id FROM contacts', myconnection)
 
+#--------------------------filtering out anaesthetists already present in target--------------------------
+# Convert both columns to the same data type before filtering
+anaesth_df['AnaesthetistCode'] = anaesth_df['AnaesthetistCode'].astype(str)
+tgt_solicitor_df['PPM_Anaesth_Id'] = tgt_solicitor_df['PPM_Anaesth_Id'].astype(str)
+anaesth_df = anaesth_df[~anaesth_df['AnaesthetistCode'].isin(tgt_solicitor_df['PPM_Anaesth_Id'])]
+
+
 for index, row in anaesth_df.iterrows():
     bar.update(1)
-    if row['AnaesthetistCode'] not in tgt_solicitor_df['PPM_Anaesth_Id'].values:
-        try:
-            query = f"""
-            INSERT INTO `contacts` (id,`contact_type_id`, `title_id`, `first_name`, `sur_name`, `display_name`, `professional_title`, `entity_name`, `address1`, `address2`, `address3`, `town`, `county`, `postcode`, `work_phone`, `home_phone`, `mobile`, `email`, `website`, `fax`, `is_archive`, `created_user_id`, `updated_user_id`, `deleted_user_id`, `created_at`, `updated_at`, `deleted_at`,PPM_Anaesth_Id) 
-            VALUES (
-            {row['anaesth_id']},
-            5, 
-            {safe_value(row['title_id'])}, 
-            {safe_value(row['AnaesthetistForename'] if pd.notna(row['AnaesthetistForename']) else '')}, 
-            {safe_value(row['AnaesthetistName'])}, 
-            {safe_value(row['display_name'])}, 
-            NULL, 
-            {safe_value(row['AnaesthetistPractice'])}, 
-            {safe_value(row['AnaesthetistAddress1'])}, 
-            {safe_value(row['AnaesthetistAddress2'])}, 
-            {safe_value(row['AnaesthetistAddress3'])}, 
-            {safe_value(row['AnaesthetistAddress4'])}, 
-            {safe_value(row['AnaesthetistAddress5'])}, 
-            {safe_value(row['AnaesthetistPostCode'])}, 
-            {safe_value(row['AnaesthetistTelNo1'])},
-            {safe_value(row['AnaesthetistTelNo2'])},
-            {safe_value(row['AnaesthetistMobile'])}, 
-            NULL, NULL, 
-            {safe_value(row['AnaesthetistFaxNo'])}, 
-            0, 1, 1, 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,
-            {safe_value(row['AnaesthetistCode'])}
-            );
-            """
-            target_cursor.execute(query)
-        except Exception as e:
-            logging.error(f"Error inserting row {index}: {e}")
-            break
-    else:
-        continue
-
+    try:
+        query = f"""
+        INSERT INTO `contacts` (id,`contact_type_id`, `title_id`, `first_name`, `sur_name`, `display_name`, `professional_title`, `entity_name`, `address1`, `address2`, `address3`, `town`, `county`, `postcode`, `work_phone`, `home_phone`, `mobile`, `email`, `website`, `fax`, `is_archive`, `created_user_id`, `updated_user_id`, `deleted_user_id`, `created_at`, `updated_at`, `deleted_at`,PPM_Anaesth_Id) 
+        VALUES (
+        {row['anaesth_id']},
+        5, 
+        {safe_value(row['title_id'])}, 
+        {safe_value(row['AnaesthetistForename'] if pd.notna(row['AnaesthetistForename']) else '')}, 
+        {safe_value(row['AnaesthetistName'])}, 
+        {safe_value(row['display_name'])}, 
+        NULL, 
+        {safe_value(row['AnaesthetistPractice'])}, 
+        {safe_value(row['AnaesthetistAddress1'])}, 
+        {safe_value(row['AnaesthetistAddress2'])}, 
+        {safe_value(row['AnaesthetistAddress3'])}, 
+        {safe_value(row['AnaesthetistAddress4'])}, 
+        {safe_value(row['AnaesthetistAddress5'])}, 
+        {safe_value(row['AnaesthetistPostCode'])}, 
+        {safe_value(row['AnaesthetistTelNo1'])},
+        {safe_value(row['AnaesthetistTelNo2'])},
+        {safe_value(row['AnaesthetistMobile'])}, 
+        NULL, NULL, 
+        {safe_value(row['AnaesthetistFaxNo'])}, 
+        0, 1, 1, 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,
+        {safe_value(row['AnaesthetistCode'])}
+        );
+        """
+        target_cursor.execute(query)
+    except Exception as e:
+        logging.error(f"Error inserting row {index}: {e}")
+        break
+    
 myconnection.commit()
 myconnection.close()
 bar.close()

@@ -77,6 +77,12 @@ def surDisplayName(row):
 
 patient_df3['sur_display_name'] = patient_df3.apply(surDisplayName, axis=1)
 
+#--------------------------filtering out patients already present in target--------------------------
+# Convert both columns to the same data type before filtering
+patient_df3['PatientCode'] = patient_df3['PatientCode'].astype(str)
+tgt_patient_df['PPM_Patient_Id'] = tgt_patient_df['PPM_Patient_Id'].astype(str)
+patient_df3 = patient_df3[~patient_df3['PatientCode'].isin(tgt_patient_df['PPM_Patient_Id'])]
+
 for index,row in patient_df3.iterrows():
     bar.update(1)
     try:

@@ -192,53 +192,55 @@ myconnection.commit()
 #-------------------------------grand total---------------------------
 invoice_df['GrandTotal'] = invoice_df['TotalValue'] - invoice_df['VATAmount']
 
+#------------------------filtering out invoices already present in target---------------------------
+tgt_invoices_df = pd.read_sql("SELECT PPM_Invoice_Id FROM invoices WHERE PPM_Invoice_Id IS NOT NULL", myconnection)
+tgt_invoices_df['PPM_Invoice_Id'] = tgt_invoices_df['PPM_Invoice_Id'].astype(str)
+invoice_df['Invoice Number'] = invoice_df['Invoice Number'].astype(str)
+invoice_df = invoice_df[~invoice_df['Invoice Number'].isin(tgt_invoices_df['PPM_Invoice_Id'])].reset_index(drop=True)
+
 #-------------------------------inserting into target-----------------------------
 bar = tqdm(total=len(invoice_df), desc='Inserting Invoices from InvoiceHeadSummary')
 
-tgt_invoices_df = pd.read_sql("SELECT PPM_Invoice_Id FROM invoices WHERE PPM_Invoice_Id IS NOT NULL", myconnection)
 
 for index, row in invoice_df.iterrows():
     bar.update(1)
-    if row['Invoice Number'] not in tgt_invoices_df['PPM_Invoice_Id'].values:
-        try:
-            query = f"""
-            INSERT INTO `invoices` (id,`invoice_no`, `invoice_no_ref`, `invoice_date`, `service_date`, `requested_date`, `reported_date`, `discharge_date`, `los`, `billto_id`, `doctor_id`, `patient_id`, `patient_address`, `contact_id`, `contact_address`, `tax_id`, `income_category_id`, `insurance_company_id`, `insurance_number`, `discount`, `discount_notes`, `tax_perc`, `tax_amount`, `waived_amount`, `grand_total`, `net_total`, `balance`, `invoice_status`, `appointment_id`, `surgery_id`, `void_invoice`, `void_invoice_date`, `void_invoice_reason`, `bad_debts_invoice`, `bad_debts_invoice_date`, `bad_debts_invoice_reason`, `is_deleted`, `notes`, `due_date`, `band_id`, `invoice_credit_note`, `invoice_credit_amount`, `invoice_credit_status`, `invoice_writeoff_status`, `eclaim_status`, `eclaim_error_message`, `save_status`, `is_split_invoice`, `split_invoice_amount`, `split_invoice_date`, `split_invoice_bill_to`, `split_invoice_description`, `ins_share`, `ins_balance`, `other_share`, `other_balance`, `tax_type`, `paradox_invoice_number`, `reminders`, `patient_alt_billing`, `created_user_id`, `updated_user_id`, `deleted_user_id`, `created_at`, `updated_at`, `deleted_at`,PPM_Invoice_Id) 
-            VALUES (
-            {safe_value(row['invoice_id'])},
-            {safe_value(row['invoice_id'])},
-            {safe_value(row['invoice_id'])}, 
-            {safe_value(row['InvoiceDate'])}, 
-            NULL, NULL, NULL, NULL, NULL, 
-            {safe_value(row['bill_to_id'])}, 
-            1, 
-            {safe_value(row['patient_id'])}, 
-            NULL, 
-            {safe_value(row['contact_id'])  }, 
-            NULL, 
-            {safe_value(row['tax_id'])}, 
-            1, 
-            {safe_value(row['insurance_company_id'])}, 
-            NULL, NULL, '', 
-            {safe_value(row['VATRate'])}, 
-            {safe_value(row['VATAmount'])}, 
-            NULL, 
-            {safe_value(row['GrandTotal'])}, 
-            {safe_value(row['TotalValue'])}, 
-            {safe_value(row['Balance'])}, 
-            {safe_value(row['EDIClaim_Status'])}, 
-            NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 
-            {safe_value(row['tax_type'])}, 
-            {safe_value(row['Invoice Number'])},
-            0, NULL, 1, 1, 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,
-            {safe_value(row['Invoice Number'])}
-            );
-            """
-            target_cursor.execute(query)
-        except Exception as e:
-            logging.error(f"Error inserting row {index}: {e}")
-            break
-    else:
-        pass
+    try:
+        query = f"""
+        INSERT INTO `invoices` (id,`invoice_no`, `invoice_no_ref`, `invoice_date`, `service_date`, `requested_date`, `reported_date`, `discharge_date`, `los`, `billto_id`, `doctor_id`, `patient_id`, `patient_address`, `contact_id`, `contact_address`, `tax_id`, `income_category_id`, `insurance_company_id`, `insurance_number`, `discount`, `discount_notes`, `tax_perc`, `tax_amount`, `waived_amount`, `grand_total`, `net_total`, `balance`, `invoice_status`, `appointment_id`, `surgery_id`, `void_invoice`, `void_invoice_date`, `void_invoice_reason`, `bad_debts_invoice`, `bad_debts_invoice_date`, `bad_debts_invoice_reason`, `is_deleted`, `notes`, `due_date`, `band_id`, `invoice_credit_note`, `invoice_credit_amount`, `invoice_credit_status`, `invoice_writeoff_status`, `eclaim_status`, `eclaim_error_message`, `save_status`, `is_split_invoice`, `split_invoice_amount`, `split_invoice_date`, `split_invoice_bill_to`, `split_invoice_description`, `ins_share`, `ins_balance`, `other_share`, `other_balance`, `tax_type`, `paradox_invoice_number`, `reminders`, `patient_alt_billing`, `created_user_id`, `updated_user_id`, `deleted_user_id`, `created_at`, `updated_at`, `deleted_at`,PPM_Invoice_Id) 
+        VALUES (
+        {safe_value(row['invoice_id'])},
+        {safe_value(row['invoice_id'])},
+        {safe_value(row['invoice_id'])}, 
+        {safe_value(row['InvoiceDate'])}, 
+        NULL, NULL, NULL, NULL, NULL, 
+        {safe_value(row['bill_to_id'])}, 
+        1, 
+        {safe_value(row['patient_id'])}, 
+        NULL, 
+        {safe_value(row['contact_id'])  }, 
+        NULL, 
+        {safe_value(row['tax_id'])}, 
+        1, 
+        {safe_value(row['insurance_company_id'])}, 
+        NULL, NULL, '', 
+        {safe_value(row['VATRate'])}, 
+        {safe_value(row['VATAmount'])}, 
+        NULL, 
+        {safe_value(row['GrandTotal'])}, 
+        {safe_value(row['TotalValue'])}, 
+        {safe_value(row['Balance'])}, 
+        {safe_value(row['EDIClaim_Status'])}, 
+        NULL, NULL, 0, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL, 0.00, 0.00, 0.00, 0.00, 
+        {safe_value(row['tax_type'])}, 
+        {safe_value(row['Invoice Number'])},
+        0, NULL, 1, 1, 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,
+        {safe_value(row['Invoice Number'])}
+        );
+        """
+        target_cursor.execute(query)
+    except Exception as e:
+        logging.error(f"Error inserting row {index}: {e}")
+        break
 
 myconnection.commit()
 myconnection.close()

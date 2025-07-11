@@ -74,7 +74,12 @@ tgt_episode_df['patient_id'] = tgt_episode_df['patient_id'].astype(int)
 landing_letter_df2 = dd.merge(landing_letter_df1, tgt_episode_df, on='patient_id', how='left')
 
 #----------------------filtering out rows already present in target database -----------------
-landing_letter_df3 = landing_letter_df2[~landing_letter_df2['ID'].isin(pd.read_sql("SELECT PPM_Letter_Id FROM letters WHERE PPM_Letter_Id IS NOT NULL", myconnection)['PPM_Letter_Id'])]
+# Convert ID to string for comparison
+landing_letter_df2['ID'] = landing_letter_df2['ID'].astype(str)
+tgt_letter_df = pd.read_sql("SELECT DISTINCT PPM_Letter_Id FROM letters WHERE PPM_Letter_Id IS NOT NULL", myconnection)
+tgt_letter_df['PPM_Letter_Id'] = tgt_letter_df['PPM_Letter_Id'].astype(str)
+# Filtering out rows already present in target database
+landing_letter_df3 = landing_letter_df2[~landing_letter_df2['ID'].isin(tgt_letter_df['PPM_Letter_Id'])]
 
 #----------------------Inserting letters into target database-----------------
 letter_bar = tqdm(total=len(landing_letter_df3), desc='Inserting letters')

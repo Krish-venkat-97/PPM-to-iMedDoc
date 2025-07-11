@@ -69,6 +69,21 @@ pat_con_df1['contact_id'] = pat_con_df1['contact_id'].astype('Int64')
 
 bar = tqdm(total=len(pat_con_df1), desc='Inserting Patient Contact Details', position=0)
 
+#-----------------------Adding source identifier column in target-----------------------
+query_3 = "ALTER TABLE patient_contact_details ADD COLUMN IF NOT EXISTS PPM_PatCon VARCHAR(100) DEFAULT NULL;"
+target_cursor.execute(query_3)
+myconnection.commit()
+
+#------------------------creating a key with patient_id,contyct_id,contact_type_id------------------------
+pat_con_df1['PPM_PatCon'] = pat_con_df1.apply(lambda row: f"{row['patient_id']}_{row['contact_id']}_{row['contact_type_id']}", axis=1)
+
+#--------------------------filtering out patient contact details already present in target--------------------------
+tgt_pat_con = 'SELECT DISTINCT PPM_PatCon FROM patient_contact_details WHERE PPM_PatCon IS NOT NULL'
+tgt_pat_con_df = pd.read_sql(tgt_pat_con, myconnection)
+tgt_pat_con_df['PPM_PatCon'] = tgt_pat_con_df['PPM_PatCon'].astype(str)
+pat_con_df1['PPM_PatCon'] = pat_con_df1['PPM_PatCon'].astype(str)
+pat_con_df1 = pat_con_df1[~pat_con_df1['PPM_PatCon'].isin(tgt_pat_con_df['PPM_PatCon'])]
+
 for index, row in pat_con_df1.iterrows():
     bar.update(1)
     try:
@@ -81,7 +96,7 @@ for index, row in pat_con_df1.iterrows():
         NULL, NULL,
         {safe_value(row['prim'])}, 
         NULL, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,
-        1
+        {safe_value(row['PPM_PatCon'])}
         );
         """
         target_cursor.execute(query)

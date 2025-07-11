@@ -65,9 +65,11 @@ else:
 src_writeoff_df2.insert(0, 'writeoff_id', range(max_id, max_id + len(src_writeoff_df2)))
 
 #------------------------------filtering out write-off already exist---------------------
-tgt_writeoff = 'SELECT PPM_Receipt_Id FROM write_offs WHERE PPM_Receipt_Id IS NOT NULL'
+tgt_writeoff = 'SELECT PPM_Receipt_writeoff_Id FROM write_offs WHERE PPM_Receipt_writeoff_Id IS NOT NULL'
 tgt_writeoff_df = pd.read_sql(tgt_writeoff, myconnection)
-src_writeoff_df2 = src_writeoff_df2[~src_writeoff_df2['ReceiptNo'].isin(tgt_writeoff_df['PPM_Receipt_Id'])]
+src_writeoff_df2['ReceiptNo'] = src_writeoff_df2['ReceiptNo'].astype(str)
+tgt_writeoff_df['PPM_Receipt_writeoff_Id'] = tgt_writeoff_df['PPM_Receipt_writeoff_Id'].astype(str)
+src_writeoff_df2 = src_writeoff_df2[~src_writeoff_df2['ReceiptNo'].isin(tgt_writeoff_df['PPM_Receipt_writeoff_Id'])]
 
 #------------------------------inserting into target------------------------------
 bar = tqdm(total=len(src_writeoff_df2), desc='Inserting write-off records')

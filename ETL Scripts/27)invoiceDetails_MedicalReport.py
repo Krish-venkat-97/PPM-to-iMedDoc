@@ -51,13 +51,19 @@ invoice_medRep_df = landing_medical_report_df1
 #-----------------------------amount-------------------------------
 invoice_medRep_df['amount'] = invoice_medRep_df['ReportCharge'] - invoice_medRep_df['VATAmount']
 
+#------------------------filtering out rows already present in target database------------------------
+tgt_invoice_details_df = pd.read_sql('SELECT DISTINCT PPM_Invoice_MedRep_Id FROM invoice_details WHERE PPM_Invoice_MedRep_Id IS NOT NULL', myconnection)
+invoice_medRep_df['MedID'] = invoice_medRep_df['MedID'].astype(str)
+tgt_invoice_details_df['PPM_Invoice_MedRep_Id'] = tgt_invoice_details_df['PPM_Invoice_MedRep_Id'].astype(str)
+invoice_medRep_df = invoice_medRep_df[~invoice_medRep_df['MedID'].isin(tgt_invoice_details_df['PPM_Invoice_MedRep_Id'])]
+
 bar = tqdm(total=len(invoice_medRep_df), desc='Inserting Invoice Details from Medical Reports')
 
 for index, row in invoice_medRep_df.iterrows():
     bar.update(1)
     try:
         query = f"""
-        INSERT INTO `invoice_details` (id, `invoice_id`, `procedure_date`, `procedure_id`, `procedure_code`, `procedure_name`, `service_location_id`, `qty`, `amount`, `total`, `inv_fee_split_percentage`, `inv_fee_split_amount`, `created_at`, `updated_at`, `deleted_at`, PPM_Invoice_Proc_Id) 
+        INSERT INTO `invoice_details` (id, `invoice_id`, `procedure_date`, `procedure_id`, `procedure_code`, `procedure_name`, `service_location_id`, `qty`, `amount`, `total`, `inv_fee_split_percentage`, `inv_fee_split_amount`, `created_at`, `updated_at`, `deleted_at`, PPM_Invoice_MedRep_Id) 
         VALUES ({safe_value(row['invoice_details_id'])}, {safe_value(row['invoice_id'])}, {safe_value(row['InvoiceDate'])}, NULL, NULL, {safe_value(row['ReportCode'])}, NULL, 1.00, {safe_value(row['amount'])}, 0.00, 0.00, 0.00, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL, {safe_value(row['MedID'])});
         """
         target_cursor.execute(query)

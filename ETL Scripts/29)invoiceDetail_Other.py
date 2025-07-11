@@ -34,7 +34,10 @@ myconnection.commit()
 
 #---------------------------------filtering out the invoice which is not used--------------------
 tgt_invoice_details_df = pd.read_sql('SELECT DISTINCT PPM_Invoice_Other_Id FROM invoice_details WHERE PPM_Invoice_Other_Id IS NOT NULL', myconnection)
-invoice_other_df = tgt_invoice_df[~tgt_invoice_df['invoice_id'].isin(tgt_invoice_details_df['PPM_Invoice_Other_Id'].to_list())]
+tgt_invoice_details_df['PPM_Invoice_Other_Id'] = tgt_invoice_details_df['PPM_Invoice_Other_Id'].astype(str)
+tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(str)
+# Filtering out rows already present in target database
+invoice_other_df = tgt_invoice_df[~tgt_invoice_df['PPM_Invoice_Id'].isin(tgt_invoice_details_df['PPM_Invoice_Other_Id'].to_list())]
 
 #------------------------------Inserting data into invoice_details-----------------------------
 bar = tqdm(total=len(tgt_invoice_df), desc='Inserting Invoice Details from Other Invoices')

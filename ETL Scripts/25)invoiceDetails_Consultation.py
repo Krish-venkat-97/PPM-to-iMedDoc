@@ -55,6 +55,8 @@ myconnection.commit()
 
 #------------------------------Inserting data into invoice_details-----------------------------
 tgt_invoice_details_df = pd.read_sql('SELECT DISTINCT PPM_Invoice_Cons_Id FROM invoice_details WHERE PPM_Invoice_Cons_Id IS NOT NULL', myconnection)
+landing_consultation_df2['ConsID'] = landing_consultation_df2['ConsID'].astype(str)
+tgt_invoice_details_df['PPM_Invoice_Cons_Id'] = tgt_invoice_details_df['PPM_Invoice_Cons_Id'].astype(str)
 invoice_consultation_df = landing_consultation_df2[~landing_consultation_df2['ConsID'].isin(tgt_invoice_details_df['PPM_Invoice_Cons_Id'])]
 
 #-----------------------------amount-------------------------------

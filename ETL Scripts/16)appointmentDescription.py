@@ -84,6 +84,22 @@ landing_surgery_desc_df = landing_desc_df
 
 appointment_bar = tqdm(total=len(landing_appt_desc_df), desc='Processing landing_appt_desc_df')
 
+#-----------------if some records ins present in target make the datafarme empty --------------
+tgt_appt_desc = pd.read_sql('SELECT DISTINCT PPM_ApptDesc_Id FROM appointment_descriptions WHERE PPM_ApptDesc_Id IS NOT NULL', myconnection)
+#---------------------------convert the column to string type for comparison---------------------------
+tgt_appt_desc['PPM_ApptDesc_Id'] = tgt_appt_desc['PPM_ApptDesc_Id'].astype(int)
+landing_appt_desc_df['check'] = 1
+#---------------------------filter out records already present in target---------------------------
+landing_appt_desc_df = landing_appt_desc_df[~landing_appt_desc_df['check'].isin(tgt_appt_desc['PPM_ApptDesc_Id'])].reset_index(drop=True)    
+
+#-----------------if some records ins present in target make the datafarme empty --------------
+tgt_procedure = pd.read_sql('SELECT DISTINCT PPM_ApptDesc_Id FROM procedures WHERE PPM_ApptDesc_Id IS NOT NULL', myconnection)
+#---------------------------convert the column to string type for comparison---------------------------
+tgt_procedure['PPM_ApptDesc_Id'] = tgt_procedure['PPM_ApptDesc_Id'].astype(int)
+landing_surgery_desc_df['check'] = 1
+#---------------------------filter out records already present in target---------------------------
+landing_surgery_desc_df = landing_surgery_desc_df[~landing_surgery_desc_df['check'].isin(tgt_procedure['PPM_ApptDesc_Id'])].reset_index(drop=True)
+
 for index, row in landing_appt_desc_df.iterrows():
     appointment_bar.update(1)
     try:

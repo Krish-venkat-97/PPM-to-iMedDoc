@@ -86,6 +86,9 @@ src_payrec_df5.insert(0, 'receipt_detail_id', range(receipt_detail_max_id, recei
 #------------------------------filtering out the receipt already exist---------------------
 tgt_receipt = 'SELECT PPM_Receipt_Id FROM receipts WHERE PPM_Receipt_Id IS NOT NULL'
 tgt_receipt_df = pd.read_sql(tgt_receipt, myconnection)
+tgt_receipt_df['PPM_Receipt_Id'] = tgt_receipt_df['PPM_Receipt_Id'].astype(str)
+src_payrec_df5['ReceiptNo'] = src_payrec_df5['ReceiptNo'].astype(str)
+# Filtering out rows already present in target database
 src_payrec_df5 = src_payrec_df5[~src_payrec_df5['ReceiptNo'].isin(tgt_receipt_df['PPM_Receipt_Id'])]
 
 src_payrec_df6 = src_payrec_df5[['receipt_id', 'receipt_detail_id', 'invoice_id', 'patient_id', 'billto_id', 'income_category_id', 'insurance_company_id', 'contact_id', 'PaymentDate', 'payment_type_id', 'tax_id', 'VATAmount', 'AmountPaid', 'Balance', 'PreviousBalance', 'Spare2','ReceiptNo']]

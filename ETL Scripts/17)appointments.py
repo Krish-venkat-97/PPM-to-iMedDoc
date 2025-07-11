@@ -110,6 +110,11 @@ else:
 landing_appointment_df6.insert(0,'appointment_id',range(max_id,max_id+len(landing_appointment_df6)))
 
 #---------------------filtering out rows already present in target database ---------------------
+#convert ID to string for comparison
+landing_appointment_df6['ID'] = landing_appointment_df6['ID'].astype(str)
+tgt_appointment_df = pd.read_sql("SELECT DISTINCT PPM_Appointment_Id FROM appointments WHERE PPM_Appointment_Id IS NOT NULL", myconnection)
+tgt_appointment_df['PPM_Appointment_Id'] = tgt_appointment_df['PPM_Appointment_Id'].astype(str)
+#filtering out rows already present in target database
 landing_appointment_df7 = landing_appointment_df6[~landing_appointment_df6['ID'].isin(pd.read_sql("SELECT PPM_Appointment_Id FROM appointments WHERE PPM_Appointment_Id IS NOT NULL", myconnection)['PPM_Appointment_Id'])]
 
 #---------------------Inserting appointments into target database---------------------

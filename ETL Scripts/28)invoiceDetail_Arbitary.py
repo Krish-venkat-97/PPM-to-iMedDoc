@@ -38,7 +38,9 @@ myconnection.commit()
 
 #-----------------------------filtering out the invoice which is not used--------------------
 tgt_invoice_details_df = pd.read_sql('SELECT PPM_Invoice_Arbitary_Id FROM invoice_details WHERE PPM_Invoice_Arbitary_Id IS NOT NULL', myconnection)
-invoice_arbitary_df = src_arbitary_invoice_df1[~src_arbitary_invoice_df1['invoice_id'].isin(tgt_invoice_details_df['PPM_Invoice_Arbitary_Id'].to_list())]
+tgt_invoice_details_df['PPM_Invoice_Arbitary_Id'] = tgt_invoice_details_df['PPM_Invoice_Arbitary_Id'].astype(str)
+src_arbitary_invoice_df1['Invoice Number'] = src_arbitary_invoice_df1['Invoice Number'].astype(str)
+invoice_arbitary_df = src_arbitary_invoice_df1[~src_arbitary_invoice_df1['Invoice Number'].isin(tgt_invoice_details_df['PPM_Invoice_Arbitary_Id'].to_list())]
 
 #------------------------------Inserting data into invoice_details-----------------------------
 bar = tqdm(total=len(src_arbitary_invoice_df1), desc='Inserting Invoice Details from Arbitary Invoices')

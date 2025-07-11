@@ -13,6 +13,7 @@ import dask.dataframe as dd
 from datetime import datetime
 import shutil
 import glob
+import subprocess
 
 __all__ = [
     'ConfigParser',
@@ -30,5 +31,6 @@ __all__ = [
     'datetime',
     'logging',
     'shutil',
-    'glob'
+    'glob',
+    'subprocess'
 ]

@@ -37,42 +37,46 @@ bar = tqdm(total=len(src_referral_df),desc='Inserting referral',position=0)
 
 tgt_referral_df = pd.read_sql('SELECT DISTINCT PPM_referral_Id FROM contacts', myconnection)
 
+#--------------------------filtering out referrals already present in target--------------------------
+# Convert both columns to the same data type before filtering
+referral_df['SpecialistCode'] = referral_df['SpecialistCode'].astype(str)
+tgt_referral_df['PPM_referral_Id'] = tgt_referral_df['PPM_referral_Id'].astype(str)
+referral_df = referral_df[~referral_df['SpecialistCode'].isin(tgt_referral_df['PPM_referral_Id'])]
+
 for index, row in referral_df.iterrows():
     bar.update(1)
-    if row['SpecialistCode'] not in tgt_referral_df['PPM_referral_Id'].values:
-        try:
-            query = f"""
-            INSERT INTO `contacts` (id,`contact_type_id`, `title_id`, `first_name`, `sur_name`, `display_name`, `professional_title`, `entity_name`, `address1`, `address2`, `address3`, `town`, `county`, `postcode`, `work_phone`, `home_phone`, `mobile`, `email`, `website`, `fax`, `is_archive`, `created_user_id`, `updated_user_id`, `deleted_user_id`, `created_at`, `updated_at`, `deleted_at`,PPM_referral_Id) 
-            VALUES (
-            {row['referral_id']},
-            11, 
-            {safe_value(row['title_id'])}, 
-            {safe_value(row['SpecialistForeName'] if pd.notna(row['SpecialistForeName']) else '')}, 
-            {safe_value(row['SpecialistName'])}, 
-            {safe_value(row['display_name'])}, 
-            NULL, 
-            {safe_value(row['SpecialistSpeciality'])}, 
-            {safe_value(row['SpecialistAddress1'])}, 
-            {safe_value(row['SpecialistAddress2'])}, 
-            {safe_value(row['SpecialistAddress3'])}, 
-            {safe_value(row['SpecialistAddress4'])}, 
-            {safe_value(row['SpecialistAddress5'])}, 
-            {safe_value(row['SpecialistPostCode'])}, 
-            {safe_value(row['SpecialistTelNo1'])},
-            {safe_value(row['SpecialistTelNo2'])},
-            {safe_value(row['SpecialistMobile'])}, 
-            NULL, NULL, 
-            {safe_value(row['SpecialistFaxNo'])}, 
-            0, 1, 1, 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,
-            {safe_value(row['SpecialistCode'])}
-            );
-            """
-            target_cursor.execute(query)
-        except Exception as e:
-            logging.error(f"Error inserting row {index}: {e}")
-            break
-    else:
-        continue
+    try:
+        query = f"""
+        INSERT INTO `contacts` (id,`contact_type_id`, `title_id`, `first_name`, `sur_name`, `display_name`, `professional_title`, `entity_name`, `address1`, `address2`, `address3`, `town`, `county`, `postcode`, `work_phone`, `home_phone`, `mobile`, `email`, `website`, `fax`, `is_archive`, `created_user_id`, `updated_user_id`, `deleted_user_id`, `created_at`, `updated_at`, `deleted_at`,PPM_referral_Id) 
+        VALUES (
+        {row['referral_id']},
+        11, 
+        {safe_value(row['title_id'])}, 
+        {safe_value(row['SpecialistForeName'] if pd.notna(row['SpecialistForeName']) else '')}, 
+        {safe_value(row['SpecialistName'])}, 
+        {safe_value(row['display_name'])}, 
+        NULL, 
+        {safe_value(row['SpecialistSpeciality'])}, 
+        {safe_value(row['SpecialistAddress1'])}, 
+        {safe_value(row['SpecialistAddress2'])}, 
+        {safe_value(row['SpecialistAddress3'])}, 
+        {safe_value(row['SpecialistAddress4'])}, 
+        {safe_value(row['SpecialistAddress5'])}, 
+        {safe_value(row['SpecialistPostCode'])}, 
+        {safe_value(row['SpecialistTelNo1'])},
+        {safe_value(row['SpecialistTelNo2'])},
+        {safe_value(row['SpecialistMobile'])}, 
+        NULL, NULL, 
+        {safe_value(row['SpecialistFaxNo'])}, 
+        0, 1, 1, 0, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), NULL,
+        {safe_value(row['SpecialistCode'])}
+        );
+        """
+        target_cursor.execute(query)
+    except Exception as e:
+        logging.error(f"Error inserting row {index}: {e}")
+        break
+
 
 myconnection.commit()
 myconnection.close()

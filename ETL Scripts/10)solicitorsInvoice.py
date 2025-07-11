@@ -29,6 +29,13 @@ else:
     max_id = solicitor_max_df.iloc[0, 0] + 1
 src_solicitor_df.insert(0,'solicitor_id',range(max_id,max_id+len(src_solicitor_df)))
 
+#------------------------filtering out solicitors already present in target--------------------------
+# Convert both columns to the same data type before filtering
+src_solicitor_df['AccountName'] = src_solicitor_df['AccountName'].astype(str)
+tgt_solicitor_df = pd.read_sql('SELECT DISTINCT PPM_solicitor FROM contacts', myconnection)
+tgt_solicitor_df['PPM_solicitor'] = tgt_solicitor_df['PPM_solicitor'].astype(str)
+src_solicitor_df = src_solicitor_df[~src_solicitor_df['AccountName'].isin(tgt_solicitor_df['PPM_solicitor'])] 
+
 bar = tqdm(total=len(src_solicitor_df), desc='Inserting Solicitors from InvoiceHeadSummary', position=0)
 
 for index, row in src_solicitor_df.iterrows():

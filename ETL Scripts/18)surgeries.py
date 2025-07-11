@@ -110,7 +110,12 @@ else:
 landing_surgery_df6.insert(0,'surgery_id',range(max_id,max_id+len(landing_surgery_df6)))
 
 #---------------------filtering out rows already present in target database ---------------------
-landing_surgery_df7 = landing_surgery_df6[~landing_surgery_df6['ID'].isin(pd.read_sql("SELECT PPM_Surgery_Id FROM surgeries WHERE PPM_Surgery_Id IS NOT NULL", myconnection)['PPM_Surgery_Id'])]
+# Convert ID to string for comparison
+landing_surgery_df6['ID'] = landing_surgery_df6['ID'].astype(str)
+tgt_surgery_df = pd.read_sql("SELECT DISTINCT PPM_Surgery_Id FROM surgeries WHERE PPM_Surgery_Id IS NOT NULL", myconnection)
+tgt_surgery_df['PPM_Surgery_Id'] = tgt_surgery_df['PPM_Surgery_Id'].astype(str)
+# Filtering out rows already present in target database
+landing_surgery_df7 = landing_surgery_df6[~landing_surgery_df6['ID'].isin(tgt_surgery_df['PPM_Surgery_Id'])]
 
 #---------------------Inserting appointments into target database---------------------
 surgery_bar = tqdm(total = len(landing_surgery_df7), desc='Inserting surgeries')

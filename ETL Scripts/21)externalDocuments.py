@@ -55,7 +55,11 @@ target_cursor.execute(query_2)
 myconnection.commit()
 
 #----------------------filtering out rows already present in target database -----------------
-tgt_scan_df = pd.read_sql("SELECT PPM_External_Scan_Id FROM scan_documents WHERE PPM_External_Scan_Id IS NOT NULL", myconnection)  
+# Convert ID to string for comparison
+landing_scan_df2['ID'] = landing_scan_df2['ID'].astype(str)
+tgt_scan_df = pd.read_sql("SELECT PPM_External_Scan_Id FROM scan_documents WHERE PPM_External_Scan_Id IS NOT NULL", myconnection) 
+tgt_scan_df['PPM_External_Scan_Id'] = tgt_scan_df['PPM_External_Scan_Id'].astype(str)
+# Filtering out rows already present in target database
 landing_scan_df2 = landing_scan_df2[~landing_scan_df2['ID'].isin(tgt_scan_df['PPM_External_Scan_Id'].to_list())]
 
 landing_scan_df3 = landing_scan_df2

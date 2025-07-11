@@ -48,7 +48,9 @@ myconnection.commit()
 #-----------------------------filtering out the invoices which already have credit-----------------------------
 tgt_invoice_credit = 'SELECT PPM_Receipt_Credit_Id FROM invoices WHERE PPM_Receipt_Credit_Id IS NOT NULL'
 tgt_invoice_credit_df = pd.read_sql(tgt_invoice_credit, myconnection)
-landing_credit_df = landing_credit_df[~landing_credit_df['invoice_id'].isin(tgt_invoice_credit_df['PPM_Receipt_Credit_Id'])]
+tgt_invoice_credit_df['PPM_Receipt_Credit_Id'] = tgt_invoice_credit_df['PPM_Receipt_Credit_Id'].astype(str)
+landing_credit_df['ReceiptNo'] = landing_credit_df['ReceiptNo'].astype(str) 
+landing_credit_df = landing_credit_df[~landing_credit_df['ReceiptNo'].isin(tgt_invoice_credit_df['PPM_Receipt_Credit_Id'])]
 
 #-------------------------------updating the invoice with credit-----------------
 bar = tqdm(total=len(landing_credit_df), desc="Updating invoices with credit")

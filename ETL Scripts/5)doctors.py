@@ -40,30 +40,35 @@ tgt_title_df = pd.read_sql(tgt_title, myconnection)
 doctor_df = dd.merge(src_doctor_df, tgt_title_df, left_on='title', right_on='title_name', how='left')
 doctor_df['title_id'] = doctor_df['title_id'].fillna(0).astype(int)
 
-tgt_doctor_df = pd.read_sql('SELECT DISTINCT PPM_doctor_Id FROM doctors', myconnection)
+tgt_doctor_df = pd.read_sql('SELECT DISTINCT PPM_doctor_Id FROM doctors WHERE PPM_doctor_Id IS NOT NULL', myconnection)
 
-bar = tqdm(total=len(src_doctor_df), desc='Inserting doctor', position=0)
+#--------------------------filtering out doctors already present in target--------------------------
+# Convert both columns to the same data type before filtering
+doctor_df['ResourceId'] = doctor_df['ResourceId'].astype(str)
+tgt_doctor_df['PPM_doctor_Id'] = tgt_doctor_df['PPM_doctor_Id'].astype(str)
+doctor_df = doctor_df[~doctor_df['ResourceId'].isin(tgt_doctor_df['PPM_doctor_Id'])]
+
+bar = tqdm(total=len(doctor_df), desc='Inserting doctor', position=0)  # Use doctor_df
 
 for index, row in doctor_df.iterrows():
     bar.update(1)
-    if row['ResourceId'] not in tgt_doctor_df['PPM_doctor_Id'].values:
-        try:
-            query = f"""
-            INSERT INTO `doctors` (`id`, `title_id`, `name`, short_name, `created_at`, `updated_at`, created_user_id, updated_user_id, `PPM_doctor_Id`) 
-            VALUES (
-            {safe_value(row['doctor_id'])}, 
-            {safe_value(row['title_id'])}, 
-            {safe_value(row['display_name'])},
-            {safe_value(row['surname'])}, 
-            CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(),
-            1,1,
-            {safe_value(row['ResourceId'])}
-            );
-            """
-            target_cursor.execute(query)
-        except Exception as e:
-            logging.error(f"Error inserting doctor {row['ResourceId']}: {e}")
-            break
+    try:
+        query = f"""
+        INSERT INTO `doctors` (`id`, `title_id`, `name`, short_name, `created_at`, `updated_at`, created_user_id, updated_user_id, `PPM_doctor_Id`) 
+        VALUES (
+        {safe_value(row['doctor_id'])}, 
+        {safe_value(row['title_id'])}, 
+        {safe_value(row['display_name'])},
+        {safe_value(row['surname'])}, 
+        CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(),
+        1,1,
+        {safe_value(row['ResourceId'])}
+        );
+        """
+        target_cursor.execute(query)
+    except Exception as e:
+        logging.error(f"Error inserting doctor {row['ResourceId']}: {e}")
+        break
 
 myconnection.commit()
 myconnection.close()

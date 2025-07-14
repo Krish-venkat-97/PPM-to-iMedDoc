@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from libs import *
 import platform
 from src.utils import get_tgt_myconnection, get_src_accessdb_connection, get_src_accessdb2_connection, safe_value,getSourceFilePath, getTargetFilePath, getLogFilePath
@@ -97,7 +100,7 @@ else:
 
             # Run the script and ensure the progress bar is displayed
             script_path = os.path.join("ETL Scripts", script)
-            python_exe = r"D:\Sakthi\Py 32-bit\python.exe"  # Adjust the path to your Python executable if needed
+            python_exe = r"D:\Conversion Codes\PPM to iMedDoc\.venv\Scripts\python.exe"  # Adjust the path to your Python executable if needed
             # Use subprocess to run the script
             result = subprocess.run([python_exe, script_path], capture_output=True, text=True, check=True, encoding='utf-8')
 

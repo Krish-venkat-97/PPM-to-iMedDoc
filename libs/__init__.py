@@ -3,7 +3,6 @@ import os
 import pymysql
 import pandas as pd
 import pandasql as ps
-import dask.dataframe as dd
 from tqdm import tqdm
 from datetime import date
 import logging
@@ -21,7 +20,6 @@ __all__ = [
     'pymysql',
     'pd',
     'ps',
-    'dd',
     'tqdm',
     'date',
     'logging',

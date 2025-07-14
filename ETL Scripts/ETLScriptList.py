@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from libs import *
 
 etl_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'ETL Scripts')

@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from libs import *
 from src.utils import get_tgt_myconnection, get_src_accessdb_connection, get_src_accessdb2_connection, safe_value
 
@@ -27,16 +30,26 @@ tgt_invoice_df = pd.read_sql(tgt_invoice, myconnection)
 tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(int)
 
 #------------------------filtering out the invoice which is not used--------------------
-src_credit_df1 = dd.merge(src_credit_df1, tgt_invoice_df, left_on='InvoiceNo', right_on='PPM_Invoice_Id', how='inner')
+src_credit_df1 = pd.merge(src_credit_df1, tgt_invoice_df, left_on='InvoiceNo', right_on='PPM_Invoice_Id', how='inner')
 src_credit_df2 = src_credit_df1[['ReceiptNo','invoice_id','PaymentDate','AmountPaid','Spare2']]
-
-landing_credit = """
+"""
+landing_credit = 
 SELECT invoice_id,SUM(AmountPaid) AS AmountPaid,MAX(PaymentDate) AS PaymentDate,MAX(ReceiptNo) AS ReceiptNo,
 GROUP_CONCAT(DISTINCT Spare2) AS Spare2
 FROM src_credit_df2
 GROUP BY invoice_id
-"""
 landing_credit_df = ps.sqldf(landing_credit)
+"""
+landing_credit_df = (
+    src_credit_df2
+    .groupby('invoice_id', as_index=False)
+    .agg({
+        'AmountPaid': 'sum',
+        'PaymentDate': 'max',
+        'ReceiptNo': 'max',
+        'Spare2': lambda x: ','.join(sorted(set(str(i) for i in x if pd.notnull(i))))
+    })
+)
 
 #----------------------------Adding source identifier-----------------------------
 query_1 = "SET sql_mode = ''"

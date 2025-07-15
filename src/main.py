@@ -61,7 +61,8 @@ scripts = [
     '31)credit.py',
     '32)Receipt.py',
     '33)lettersMigration.py',
-    '34)externalDocumentMigration.py'
+    '34)externalDocumentMigration.py',
+    '35)templates.py',
 ]
 
 # Function to get the last completed script

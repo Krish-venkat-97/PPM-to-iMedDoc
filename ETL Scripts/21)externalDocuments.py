@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_documents = 'SELECT * FROM ExternalDocuments'
-src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
+
+try:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
+except:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb2_connection())
 
 src_documents_df = src_documents_df[~src_documents_df['DocFolder'].isna()]
 
@@ -19,7 +23,7 @@ tgt_patient = 'SELECT id as patient_id,PPM_Patient_Id FROM patients WHERE PPM_Pa
 tgt_patient_df = pd.read_sql(tgt_patient, myconnection)
 tgt_patient_df['PPM_Patient_Id'] = tgt_patient_df['PPM_Patient_Id'].astype(int)
 src_documents_df['PatientCode'] = src_documents_df['PatientCode'].astype(int)
-landing_documents_df = dd.merge(src_documents_df, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
+landing_documents_df = pd.merge(src_documents_df, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
 
 #--------------------------dropping None patients rows-----------------
 landing_documents_df = landing_documents_df[~landing_documents_df['patient_id'].isna()]
@@ -48,7 +52,7 @@ landing_documents_df1.insert(0,'scan_id',range(max_id,max_id+len(landing_documen
 landing_documents_df1['patient_id'] = landing_documents_df1['patient_id'].astype(int)
 tgt_episode_df = pd.read_sql("SELECT id as episode_id,patient_id FROM episodes WHERE episodes.name = 'General'", myconnection)
 tgt_episode_df['patient_id'] = tgt_episode_df['patient_id'].astype(int)
-landing_scan_df2 = dd.merge(landing_documents_df1, tgt_episode_df, on='patient_id', how='left')
+landing_scan_df2 = pd.merge(landing_documents_df1, tgt_episode_df, on='patient_id', how='left')
 
 #----------------------adding source identifier column in target-----------------
 query_1 = "SET sql_mode = ''"

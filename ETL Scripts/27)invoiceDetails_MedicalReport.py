@@ -13,11 +13,14 @@ tgt_invoice_df = pd.read_sql('SELECT id as tgt_invoice_id,PPM_Invoice_Id FROM in
 tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(int)
 
 src_medical_report = 'SELECT * FROM MedicalReportFile'
-src_medical_report_df = pd.read_sql(src_medical_report, get_src_accessdb_connection())
+try:
+    src_medical_report_df = pd.read_sql(src_medical_report, get_src_accessdb_connection())
+except:
+    src_medical_report_df = pd.read_sql(src_medical_report, get_src_accessdb2_connection())
 src_medical_report_df = src_medical_report_df[src_medical_report_df['InvoiceNumber'] != 0]
 src_medical_report_df['InvoiceNumber'] = src_medical_report_df['InvoiceNumber'].astype(int)
 
-landing_medical_report_df = dd.merge(src_medical_report_df, tgt_invoice_df, left_on='InvoiceNumber', right_on='PPM_Invoice_Id', how='inner')
+landing_medical_report_df = pd.merge(src_medical_report_df, tgt_invoice_df, left_on='InvoiceNumber', right_on='PPM_Invoice_Id', how='inner')
 landing_medical_report_df = landing_medical_report_df.rename(columns={'tgt_invoice_id': 'invoice_id'})
 landing_medical_report_df = landing_medical_report_df.drop(columns=['PPM_Invoice_Id', 'InvoiceNumber'])
 

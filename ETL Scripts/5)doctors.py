@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_doctor = 'SELECT * FROM DiaryResources'
-src_doctor_df = pd.read_sql(src_doctor, get_src_accessdb_connection())
+
+try:
+    src_doctor_df = pd.read_sql(src_doctor, get_src_accessdb_connection())
+except:
+    src_doctor_df = pd.read_sql(src_doctor, get_src_accessdb2_connection())
 
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
@@ -40,7 +44,7 @@ src_doctor_df['surname'] = src_doctor_df['ResourceName'].apply(lambda x: x.split
 tgt_title = 'SELECT id as title_id, name as title_name FROM titles'
 tgt_title_df = pd.read_sql(tgt_title, myconnection)
 
-doctor_df = dd.merge(src_doctor_df, tgt_title_df, left_on='title', right_on='title_name', how='left')
+doctor_df = pd.merge(src_doctor_df, tgt_title_df, left_on='title', right_on='title_name', how='left')
 doctor_df['title_id'] = doctor_df['title_id'].fillna(0).astype(int)
 
 tgt_doctor_df = pd.read_sql('SELECT DISTINCT PPM_doctor_Id FROM doctors WHERE PPM_doctor_Id IS NOT NULL', myconnection)

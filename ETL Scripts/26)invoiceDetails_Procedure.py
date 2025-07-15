@@ -13,16 +13,22 @@ tgt_invoice_df = pd.read_sql('SELECT id as tgt_invoice_id,PPM_Invoice_Id FROM in
 tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(int)
 
 src_procedure = 'SELECT * FROM Procedures'
-src_procedure_df = pd.read_sql(src_procedure, get_src_accessdb_connection())
+try:
+    src_procedure_df = pd.read_sql(src_procedure, get_src_accessdb_connection())
+except:
+    src_procedure_df = pd.read_sql(src_procedure, get_src_accessdb2_connection())
 src_procedure_df = src_procedure_df[['ProcID','InvoiceNumber']]
 src_procedure_df['InvoiceNumber'] = src_procedure_df['InvoiceNumber'].astype(int)
 
-landing_procedure_df = dd.merge(src_procedure_df, tgt_invoice_df, left_on='InvoiceNumber', right_on='PPM_Invoice_Id', how='inner')
+landing_procedure_df = pd.merge(src_procedure_df, tgt_invoice_df, left_on='InvoiceNumber', right_on='PPM_Invoice_Id', how='inner')
 landing_procedure_df = landing_procedure_df.rename(columns={'tgt_invoice_id': 'invoice_id'})
 landing_procedure_df = landing_procedure_df.drop(columns=['PPM_Invoice_Id','InvoiceNumber'])
 
 src_procedure_trans = 'SELECT * FROM ProcedureTrans'
-src_procedure_trans_df = pd.read_sql(src_procedure_trans, get_src_accessdb_connection())
+try:
+    src_procedure_trans_df = pd.read_sql(src_procedure_trans, get_src_accessdb_connection())
+except:
+    src_procedure_trans_df = pd.read_sql(src_procedure_trans, get_src_accessdb2_connection())
 src_procedure_trans_df = src_procedure_trans_df[['ProcTransID','ProcedureDate','ProcedureCode','ProcedureDescription','SurgeonsFee','VATAmount']]
 src_procedure_trans_df = src_procedure_trans_df.rename(columns={'ProcTransID': 'ProcID'})
 
@@ -30,7 +36,7 @@ src_procedure_trans_df = src_procedure_trans_df.rename(columns={'ProcTransID': '
 #-----------------------------including the invoicenumber in the src_procedure_trans_df--------------------------
 landing_procedure_df['ProcID'] = landing_procedure_df['ProcID'].astype(int)
 src_procedure_trans_df['ProcID'] = src_procedure_trans_df['ProcID'].astype(int)
-landing_procedure_df2 = dd.merge(landing_procedure_df,src_procedure_trans_df, on='ProcID', how='inner')
+landing_procedure_df2 = pd.merge(landing_procedure_df,src_procedure_trans_df, on='ProcID', how='inner')
 
 #----------------------invoice date-----------------
 def invoiceDate(row):

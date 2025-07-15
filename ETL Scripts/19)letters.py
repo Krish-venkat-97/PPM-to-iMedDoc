@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_documents = 'SELECT * FROM PatientDocHistory'
-src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
+
+try:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
+except:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb2_connection())
 
 #-----------------------------filterinig out the rows with SubDirectory = None--------------
 src_documents_df = src_documents_df[~src_documents_df['SubDirectory'].isna()] 
@@ -37,7 +41,7 @@ src_letter_df['LetterDate'] = src_letter_df.apply(letterDate, axis=1)
 src_letter_df['PatientCode'] = src_letter_df['PatientCode'].astype(int)
 tgt_patient_df = pd.read_sql("SELECT id as patient_id, PPM_Patient_Id FROM patients WHERE PPM_Patient_Id IS NOT NULL", myconnection)
 tgt_patient_df['PPM_Patient_Id'] = tgt_patient_df['PPM_Patient_Id'].astype(int)
-landing_letter_df = dd.merge(src_letter_df, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
+landing_letter_df = pd.merge(src_letter_df, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
 
 #----------------------dropping None patients rows-----------------
 landing_letter_df = landing_letter_df[~landing_letter_df['patient_id'].isna()]
@@ -74,7 +78,7 @@ landing_letter_df1.insert(0,'letter_id',range(max_id,max_id+len(landing_letter_d
 landing_letter_df1['patient_id'] = landing_letter_df1['patient_id'].astype(int)
 tgt_episode_df = pd.read_sql("SELECT id as episode_id,patient_id FROM episodes WHERE episodes.name = 'General'", myconnection)
 tgt_episode_df['patient_id'] = tgt_episode_df['patient_id'].astype(int)
-landing_letter_df2 = dd.merge(landing_letter_df1, tgt_episode_df, on='patient_id', how='left')
+landing_letter_df2 = pd.merge(landing_letter_df1, tgt_episode_df, on='patient_id', how='left')
 
 #----------------------filtering out rows already present in target database -----------------
 # Convert ID to string for comparison

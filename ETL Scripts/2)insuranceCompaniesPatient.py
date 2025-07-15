@@ -10,10 +10,18 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_insurance_companies0  = 'SELECT DISTINCT InsuranceCompany FROM CodePatients'
-src_insurance_companies_df0 = pd.read_sql(src_insurance_companies0, get_src_accessdb_connection())
+
+try:
+    src_insurance_companies_df0 = pd.read_sql(src_insurance_companies0, get_src_accessdb_connection())
+except:
+    src_insurance_companies_df0 = pd.read_sql(src_insurance_companies0, get_src_accessdb2_connection())
 
 src_insurance_companies1  = 'SELECT DISTINCT InsuranceCompany1 FROM CodePatients'
-src_insurance_companies_df1 = pd.read_sql(src_insurance_companies1, get_src_accessdb_connection())
+
+try:
+    src_insurance_companies_df1 = pd.read_sql(src_insurance_companies1, get_src_accessdb_connection())
+except:
+    src_insurance_companies_df1 = pd.read_sql(src_insurance_companies1, get_src_accessdb2_connection())
 
 # Merging the two dataframes
 src_insurance_companies_df = pd.concat([

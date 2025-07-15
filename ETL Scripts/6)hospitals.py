@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_hospital = 'SELECT * FROM DiaryLocation'
-src_hospital_df = pd.read_sql(src_hospital, get_src_accessdb_connection())
+
+try:
+    src_hospital_df = pd.read_sql(src_hospital, get_src_accessdb_connection())
+except:
+    src_hospital_df = pd.read_sql(src_hospital, get_src_accessdb2_connection())
 
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"

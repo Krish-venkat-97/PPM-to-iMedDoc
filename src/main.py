@@ -102,7 +102,7 @@ else:
             script_path = os.path.join("ETL Scripts", script)
             python_exe = r"D:\Conversion Codes\PPM to iMedDoc\.venv\Scripts\python.exe"  # Adjust the path to your Python executable if needed
             # Use subprocess to run the script
-            result = subprocess.run([python_exe, script_path], capture_output=True, text=True, check=True, encoding='utf-8')
+            result = subprocess.run([python_exe, script_path], text=True, check=True, encoding='utf-8')
 
             # Log standard output
             #logging.info(f"Output of {script}: {result.stdout}")

@@ -17,14 +17,18 @@ target_cursor.execute(query_2)
 myconnection.commit()
 
 src_patient = 'SELECT * FROM CodePatients'
-src_patient_df = pd.read_sql(src_patient, get_src_accessdb_connection())
+
+try:
+    src_patient_df = pd.read_sql(src_patient, get_src_accessdb2_connection())
+except:
+    src_patient_df = pd.read_sql(src_patient, get_src_accessdb_connection())
 
 src_patient_df1 = src_patient_df[['PatientCode','GPCode','GP1Code','Solicitor1Code']]
 src_patient_df2 = src_patient_df1.dropna(subset=['GPCode','GP1Code','Solicitor1Code'], how='all').reset_index(drop=True)
 
 src_patient_df2 = src_patient_df2.apply(pd.to_numeric, errors='coerce').astype('Int64')
 
-tgt_patient = 'SELECT id as patient_id, PPM_Patient_Id FROM patients'
+tgt_patient = 'SELECT id as patient_id, PPM_Patient_Id FROM patients WHERE PPM_Patient_Id IS NOT NULL'
 tgt_patient_df = pd.read_sql(tgt_patient, myconnection)
 
 tgt_patient_df['PPM_Patient_Id'] = tgt_patient_df['PPM_Patient_Id'].astype(int)
@@ -55,17 +59,21 @@ pat_con_df = pd.melt(src_patient_df7, id_vars=['patient_id'], value_vars=['gp_co
 
 pat_con_df1 = pat_con_df.dropna(subset=['contact_id']).reset_index(drop=True)
 
-def get_contact_type(row):
-    if row['contact_type'] == 'gp_contact_id1':
-        return pd.Series([3, 1])  # Primary GP
-    elif row['contact_type'] == 'gp_contact_id2':
-        return pd.Series([3, 0])  # Secondary GP
-    elif row['contact_type'] == 'solicitor_contact_id':
-        return pd.Series([4, 0])  # Solicitor
-    else:
-        return pd.Series([None, None])  # Default case
+if pat_con_df1.empty:
+    pat_con_df1['contact_type_id'] = None
+    pat_con_df1['prim'] = None
+else:
+    def get_contact_type(row):
+        if row['contact_type'] == 'gp_contact_id1':
+            return pd.Series([3, 1])  # Primary GP
+        elif row['contact_type'] == 'gp_contact_id2':
+            return pd.Series([3, 0])  # Secondary GP
+        elif row['contact_type'] == 'solicitor_contact_id':
+            return pd.Series([4, 0])  # Solicitor
+        else:
+            return pd.Series([None, None])  # Default case
 
-pat_con_df1[['contact_type_id', 'prim']] = pat_con_df1.apply(get_contact_type, axis=1)
+    pat_con_df1[['contact_type_id', 'prim']] = pat_con_df1.apply(get_contact_type, axis=1)
 
 pat_con_df1 = pat_con_df1.drop(columns=['contact_type'])
 pat_con_df1['contact_id'] = pat_con_df1['contact_id'].astype('Int64')

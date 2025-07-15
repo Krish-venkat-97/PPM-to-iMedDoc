@@ -9,8 +9,14 @@ target_cursor = myconnection.cursor()
 
 warnings.filterwarnings("ignore")
 
+
 src_insurance_companies  = 'SELECT * FROM CodeInsuranceCompanys'
-src_insurance_companies_df = pd.read_sql(src_insurance_companies, get_src_accessdb_connection())
+
+try:
+    src_insurance_companies_df = pd.read_sql(src_insurance_companies, get_src_accessdb_connection())
+except:
+    src_insurance_companies_df = pd.read_sql(src_insurance_companies, get_src_accessdb2_connection())
+
 
 src_insurance_companies_df['InsCoName_Upper'] = src_insurance_companies_df['InsCoName'].str.upper().str.strip()
 src_insurance_companies_df = src_insurance_companies_df.drop_duplicates(subset=['InsCoName_Upper']).reset_index(drop=True)

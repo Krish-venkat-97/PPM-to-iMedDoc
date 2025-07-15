@@ -10,7 +10,10 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_documents = 'SELECT * FROM PatientDocHistory'
-src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
+try:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb2_connection())
+except:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
 
 def getFileExtension(filename):
     if pd.isna(filename):
@@ -26,7 +29,7 @@ src_letter_df = src_documents_df[src_documents_df['FileExtension'].isin(['.doc',
 tgt_letter_df = pd.read_sql("SELECT id as letter_id, patient_id, PPM_Letter_Id FROM letters WHERE PPM_Letter_Id IS NOT NULL", myconnection)
 tgt_letter_df['PPM_Letter_Id'] = tgt_letter_df['PPM_Letter_Id'].astype(int)
 src_letter_df['ID'] = src_letter_df['ID'].astype(int)
-landing_letter_df = dd.merge(src_letter_df, tgt_letter_df, left_on='ID', right_on='PPM_Letter_Id', how='inner')
+landing_letter_df = pd.merge(src_letter_df, tgt_letter_df, left_on='ID', right_on='PPM_Letter_Id', how='inner')
 
 #-----------------------------filterinig out the rows with SubDirectory = None--------------
 landing_letter_df = landing_letter_df[~landing_letter_df['SubDirectory'].isna()] 

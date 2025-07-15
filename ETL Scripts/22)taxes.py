@@ -10,10 +10,18 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_invoices = 'SELECT * FROM InvoiceHeadSummary'
-src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+
+try:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+except:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb2_connection())
 
 src_receipt = 'SELECT * FROM "Payments Received"'
-src_receipt_df = pd.read_sql(src_receipt, get_src_accessdb_connection())
+
+try:
+    src_receipt_df = pd.read_sql(src_receipt, get_src_accessdb_connection())
+except:
+    src_receipt_df = pd.read_sql(src_receipt, get_src_accessdb2_connection())
 
 #------------------------invoice tax----------------------------------
 src_invoice_tax_df = src_invoices_df[src_invoices_df['VATRate'] != 0]['VATRate'].drop_duplicates().reset_index(drop=True)

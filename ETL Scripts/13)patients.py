@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_patient = 'SELECT * FROM CodePatients'
-src_patient_df = pd.read_sql(src_patient, get_src_accessdb_connection())
+
+try:
+    src_patient_df = pd.read_sql(src_patient, get_src_accessdb_connection())
+except:
+    src_patient_df = pd.read_sql(src_patient, get_src_accessdb2_connection())
 
 # Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
@@ -34,7 +38,7 @@ tgt_title_df = pd.read_sql(tgt_title, myconnection)
 src_patient_df['Title_Upper'] = src_patient_df['Title'].str.upper().str.strip()
 tgt_title_df['title_name_Upper'] = tgt_title_df['title_name'].str.upper().str.strip()
 
-patient_df = dd.merge(src_patient_df, tgt_title_df, left_on='Title_Upper', right_on='title_name_Upper', how='left')
+patient_df = pd.merge(src_patient_df, tgt_title_df, left_on='Title_Upper', right_on='title_name_Upper', how='left')
 patient_df['title_id'] = patient_df['title_id'].fillna(0).astype(int)
 
 tgt_insurance_companies = 'SELECT DISTINCT PPM_InsComp_Id, name FROM insurance_companies'
@@ -46,7 +50,7 @@ tgt_insurance_companies_df = pd.read_sql(tgt_insurance_companies, myconnection)
 patient_df['InsuranceCompany_Upper'] = patient_df['InsuranceCompany'].str.upper().str.strip()
 tgt_insurance_companies_df['InsuranceCompany_Upper'] = tgt_insurance_companies_df['insuranc_comp_name'].str.upper().str.strip()
 
-patient_df1 = dd.merge(patient_df, tgt_insurance_companies_df, left_on='InsuranceCompany_Upper', right_on='InsuranceCompany_Upper', how='left')
+patient_df1 = pd.merge(patient_df, tgt_insurance_companies_df, left_on='InsuranceCompany_Upper', right_on='InsuranceCompany_Upper', how='left')
 patient_df1['insurance_comp_id'] = patient_df1['insurance_comp_id'].apply(lambda x: int(x) if pd.notnull(x) else None)
 
 tgt_insurance_companies2 = 'SELECT i.id AS insurance_comp_id2,i.name AS insuranc_comp_name2 FROM insurance_companies i'
@@ -55,7 +59,7 @@ tgt_insurance_companies_df2 = pd.read_sql(tgt_insurance_companies2, myconnection
 patient_df1['InsuranceCompany_Upper2'] = patient_df1['InsuranceCompany1'].str.upper().str.strip()
 tgt_insurance_companies_df2['InsuranceCompany_Upper2'] = tgt_insurance_companies_df2['insuranc_comp_name2'].str.upper().str.strip()
 
-patient_df2 = dd.merge(patient_df1, tgt_insurance_companies_df2, left_on='InsuranceCompany_Upper2', right_on='InsuranceCompany_Upper2', how='left')
+patient_df2 = pd.merge(patient_df1, tgt_insurance_companies_df2, left_on='InsuranceCompany_Upper2', right_on='InsuranceCompany_Upper2', how='left')
 patient_df2['insurance_comp_id2'] = patient_df2['insurance_comp_id2'].apply(lambda x: int(x) if pd.notnull(x) else None)
 
 patient_df2['gender'] = patient_df2.apply(lambda row: 1 if row['Sex']==False else 2, axis=1)

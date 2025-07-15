@@ -10,7 +10,10 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_payrec = 'SELECT * FROM "Payments Received"'
-src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb_connection())
+try:
+    src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb_connection())
+except:
+    src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb2_connection())
 
 src_payrec_df1 = src_payrec_df[~src_payrec_df['PaymentMethod'].str.lower().isin(['write-off', 'credit'])]
 src_payrec_df2 = src_payrec_df1[['InvoiceNo', 'ReceiptNo','PaymentDate','PaymentMethod','AmountPaid','Balance', 'PreviousBalance','Spare2','VATRate','VATAmount']]
@@ -20,7 +23,7 @@ tgt_invoice_df = pd.read_sql(tgt_invoice, myconnection)
 tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(int)
 
 #------------------------filtering out the invoice which is not used--------------------
-src_payrec_df3 = dd.merge(src_payrec_df2, tgt_invoice_df, left_on='InvoiceNo', right_on='PPM_Invoice_Id', how='inner')
+src_payrec_df3 = pd.merge(src_payrec_df2, tgt_invoice_df, left_on='InvoiceNo', right_on='PPM_Invoice_Id', how='inner')
 src_payrec_df3 = src_payrec_df3.drop(columns=['InvoiceNo', 'PPM_Invoice_Id'])
 
 tgt_payment_types = 'SELECT id as payment_type_id, name as payment_type FROM payment_types'
@@ -28,6 +31,11 @@ tgt_payment_types_df = pd.read_sql(tgt_payment_types, myconnection)
 
 #-----------------------------payment type mapping---------------------------
 def paymentType(row):
+    # Handle None/null values
+    if pd.isna(row['PaymentMethod']) or row['PaymentMethod'] is None:
+        return 'Others'
+    payment_method = row['PaymentMethod'].lower()
+
     if 'cash' in row['PaymentMethod'].lower():
         return 'Cash'
     elif 'credit' in row['PaymentMethod'].lower():
@@ -41,7 +49,7 @@ def paymentType(row):
 
 src_payrec_df3['PaymentMethod'] = src_payrec_df3.apply(paymentType, axis=1)
 
-src_payrec_df4 = dd.merge(src_payrec_df3, tgt_payment_types_df, left_on='PaymentMethod', right_on='payment_type', how='left')
+src_payrec_df4 = pd.merge(src_payrec_df3, tgt_payment_types_df, left_on='PaymentMethod', right_on='payment_type', how='left')
 
 #----------------------------payment date-----------------------------
 def paymentDate(row):

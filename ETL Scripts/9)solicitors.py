@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_solicitor = 'SELECT * FROM CodeSolicitors'
-src_solicitor_df = pd.read_sql(src_solicitor, get_src_accessdb2_connection())
+
+try:
+    src_solicitor_df = pd.read_sql(src_solicitor, get_src_accessdb2_connection())
+except:
+    src_solicitor_df = pd.read_sql(src_solicitor, get_src_accessdb_connection())
 
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
@@ -33,10 +37,10 @@ src_solicitor_df.insert(0,'solicitor_id',range(max_id,max_id+len(src_solicitor_d
 tgt_title = 'SELECT id as title_id, name as title_name FROM titles'
 tgt_title_df = pd.read_sql(tgt_title, myconnection)
 
-solicitor_df = dd.merge(src_solicitor_df, tgt_title_df, left_on='SolicitorsTitle', right_on='title_name', how='left')
+solicitor_df = pd.merge(src_solicitor_df, tgt_title_df, left_on='SolicitorsTitle', right_on='title_name', how='left')
 solicitor_df['title_id'] = solicitor_df['title_id'].fillna(0).astype(int)
 
-bar = tqdm(total=len(src_solicitor_df),desc='Inserting solicitors',position=0)
+bar = tqdm(total=len(src_solicitor_df),desc='Inserting solicitors',position=-1)
 
 tgt_solicitor_df = pd.read_sql('SELECT DISTINCT PPM_solicitor_Id FROM contacts', myconnection)
 
@@ -50,16 +54,26 @@ def getDisplayName(row):
     
 solicitor_df['display_name'] = solicitor_df.apply(getDisplayName, axis=1)
 
-def firstNameAndSurname(row):
-    if pd.isna(row['SolicitorsInitials']):
-        first_name = row['SolicitorPracticeName'].split()[0] if pd.notna(row['SolicitorPracticeName']) else ''
-        sur_name = ' '.join(row['SolicitorPracticeName'].split()[1:]) if pd.notna(row['SolicitorPracticeName']) else ''
-    else:
-        first_name = row['SolicitorsInitials'] if pd.notna(row['SolicitorsInitials']) else ''
-        sur_name = row['SolicitorsName'] if pd.notna(row['SolicitorsName']) else ''
-    return pd.Series([first_name, sur_name])
+if solicitor_df.empty:
+    # Just add empty columns with None (or np.nan)
+    solicitor_df['first_name'] = None
+    solicitor_df['sur_name'] = None
+else:
+    def firstNameAndSurname(row):
+        if pd.isna(row['SolicitorsInitials']):
+            if pd.notna(row['SolicitorPracticeName']):
+                parts = row['SolicitorPracticeName'].split()
+                first_name = parts[0] if parts else ''
+                sur_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+            else:
+                first_name = ''
+                sur_name = ''
+        else:
+            first_name = row['SolicitorsInitials'] if pd.notna(row['SolicitorsInitials']) else ''
+            sur_name = row['SolicitorsName'] if pd.notna(row['SolicitorsName']) else ''
+        return pd.Series([first_name, sur_name])
 
-solicitor_df[['first_name', 'sur_name']] = solicitor_df.apply(firstNameAndSurname, axis=1)
+    solicitor_df[['first_name', 'sur_name']] = solicitor_df.apply(firstNameAndSurname, axis=1)
 
 #--------------------------filtering out solicitors already present in target--------------------------
 # Convert both columns to the same data type before filtering

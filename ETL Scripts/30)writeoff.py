@@ -10,7 +10,10 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_payrec = 'SELECT * FROM "Payments Received"'
-src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb_connection())
+try:
+    src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb2_connection())
+except:
+    src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb_connection())
 
 src_writeoff_df = src_payrec_df[src_payrec_df['PaymentMethod'].str.lower() == 'write-off']
 
@@ -20,7 +23,7 @@ tgt_invoice_df = pd.read_sql(tgt_invoice, myconnection)
 tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(int)
 
 #------------------------filtering out the invoice which is not used--------------------
-src_writeoff_df1 = dd.merge(src_writeoff_df, tgt_invoice_df, left_on='InvoiceNo', right_on='PPM_Invoice_Id', how='inner')
+src_writeoff_df1 = pd.merge(src_writeoff_df, tgt_invoice_df, left_on='InvoiceNo', right_on='PPM_Invoice_Id', how='inner')
 
 tgt_payment_types = 'SELECT DISTINCT name as payment_type FROM payment_types'
 tgt_payment_types_df = pd.read_sql(tgt_payment_types, myconnection)

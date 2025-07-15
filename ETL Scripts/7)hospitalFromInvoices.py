@@ -10,8 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_invoice_hospitals  = 'SELECT * FROM InvoiceHeadSummary WHERE InvoiceTo = 3'
-src_invoice_hospitals_df = pd.read_sql(src_invoice_hospitals, get_src_accessdb_connection())
 
+try:
+    src_invoice_hospitals_df = pd.read_sql(src_invoice_hospitals, get_src_accessdb_connection())
+except:
+    src_invoice_hospitals_df = pd.read_sql(src_invoice_hospitals, get_src_accessdb2_connection())
 
 src_invoice_hospitals_df1 = src_invoice_hospitals_df[['AccountName','Hospital','EDIHospitalNumber']]
 
@@ -34,7 +37,7 @@ def changeHospital(row):
 src_invoice_hospitals_df2['AccountName_original'] = src_invoice_hospitals_df2.apply(changeHospital, axis=1)
 
 landing_invoice_hospital_df = src_invoice_hospitals_df2[['AccountName_original']]
-landing_invoice_hospital_df['AccountName_Upper'] = landing_invoice_hospital_df['AccountName_original'].str.upper().str.strip()
+landing_invoice_hospital_df['AccountName_Upper'] = landing_invoice_hospital_df['AccountName_original'].astype(str).str.upper().str.strip()
 landing_invoice_hospital_df = landing_invoice_hospital_df.drop_duplicates(subset=['AccountName_Upper']).reset_index(drop=True)
 
 tgt_hospitals = pd.read_sql('SELECT DISTINCT name,UPPER(LTRIM(RTRIM(name))) as AccountName_Upper FROM hospitals', myconnection)

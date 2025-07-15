@@ -10,7 +10,10 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_documents = 'SELECT * FROM ExternalDocuments'
-src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
+try:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb2_connection())
+except:
+    src_documents_df = pd.read_sql(src_documents, get_src_accessdb_connection())
 
 src_documents_df = src_documents_df[~src_documents_df['DocFolder'].isna()]
 
@@ -18,7 +21,7 @@ src_documents_df = src_documents_df[~src_documents_df['DocFolder'].isna()]
 tgt_scan_df = pd.read_sql("SELECT id AS scan_id,patient_id,PPM_External_Scan_Id FROM scan_documents WHERE PPM_External_Scan_Id IS NOT NULL", myconnection)
 tgt_scan_df['PPM_External_Scan_Id'] = tgt_scan_df['PPM_External_Scan_Id'].astype(int)
 src_documents_df['ID'] = src_documents_df['ID'].astype(int)
-landing_documents_df = dd.merge(src_documents_df, tgt_scan_df, left_on='ID', right_on='PPM_External_Scan_Id', how='inner')
+landing_documents_df = pd.merge(src_documents_df, tgt_scan_df, left_on='ID', right_on='PPM_External_Scan_Id', how='inner')
 
 #--------------------------dropping None patients rows-----------------
 landing_documents_df = landing_documents_df[~landing_documents_df['patient_id'].isna()]

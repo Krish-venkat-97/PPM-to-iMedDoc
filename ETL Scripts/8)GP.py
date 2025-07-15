@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_gp = 'SELECT * FROM CodeGPs'
-src_gp_df = pd.read_sql(src_gp, get_src_accessdb2_connection())
+
+try:
+    src_gp_df = pd.read_sql(src_gp, get_src_accessdb2_connection())
+except:
+    src_gp_df = pd.read_sql(src_gp, get_src_accessdb_connection())
 
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
@@ -31,7 +35,7 @@ src_gp_df.insert(0,'gp_id',range(max_id,max_id+len(src_gp_df)))
 tgt_title = 'SELECT id as title_id, name as title_name FROM titles'
 tgt_title_df = pd.read_sql(tgt_title, myconnection)
 
-gp_df = dd.merge(src_gp_df, tgt_title_df, left_on='GPTitle', right_on='title_name', how='left')
+gp_df = pd.merge(src_gp_df, tgt_title_df, left_on='GPTitle', right_on='title_name', how='left')
 gp_df['title_id'] = gp_df['title_id'].fillna(0).astype(int)
 
 bar = tqdm(total=len(src_gp_df),desc='Inserting GPs',position=0)

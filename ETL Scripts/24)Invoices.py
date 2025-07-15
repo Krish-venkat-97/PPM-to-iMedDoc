@@ -10,17 +10,32 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_invoices = 'SELECT * FROM InvoiceHeadSummary'
-src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+
+try:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+except:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb2_connection())
+
 src_invoices_df = src_invoices_df[src_invoices_df['Invoice Number'] != 0]
 src_invoices_df = src_invoices_df[src_invoices_df['TotalValue'] != 0]
 
 src_invoice_print_summary = 'SELECT * FROM InvoicePrintSummary'
-src_invoice_print_summary_df = pd.read_sql(src_invoice_print_summary, get_src_accessdb_connection())
+
+try:
+    src_invoice_print_summary_df = pd.read_sql(src_invoice_print_summary, get_src_accessdb2_connection())
+except:
+    src_invoice_print_summary_df = pd.read_sql(src_invoice_print_summary, get_src_accessdb_connection())
+
 src_invoice_print_summary_df = src_invoice_print_summary_df[['InvoiceNo','Balance']]
 src_invoice_print_summary_df = src_invoice_print_summary_df.rename(columns={'InvoiceNo': 'Invoice Number'})
 
 src_invoice_used = 'SELECT * FROM InvNoUsed'
-src_invoice_used_df = pd.read_sql(src_invoice_used, get_src_accessdb_connection())
+
+try:
+    src_invoice_used_df = pd.read_sql(src_invoice_used, get_src_accessdb2_connection())
+except:
+    src_invoice_used_df = pd.read_sql(src_invoice_used, get_src_accessdb_connection())
+    
 src_invoice_used_list = src_invoice_used_df['Invoice Number'].unique().tolist()
 
 #----------------------filtering invoices that are not printed---------------------
@@ -30,7 +45,7 @@ src_invoices_df = src_invoices_df[src_invoices_df['Invoice Number'].isin(src_inv
 src_invoices_df['PatientCode'] = src_invoices_df['PatientCode'].astype(int)
 tgt_patient_df = pd.read_sql("SELECT id as patient_id, PPM_Patient_Id FROM patients WHERE PPM_Patient_Id IS NOT NULL", myconnection)
 tgt_patient_df['PPM_Patient_Id'] = tgt_patient_df['PPM_Patient_Id'].astype(int)
-landing_invoice_df = dd.merge(src_invoices_df, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
+landing_invoice_df = pd.merge(src_invoices_df, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
 
 #----------------------dropping None patients rows----------------- 
 landing_invoice_df = landing_invoice_df[~landing_invoice_df['patient_id'].isna()]  
@@ -110,7 +125,7 @@ src_invoice_hospitals_df2 = src_invoice_hospitals_df2.drop(columns=['AccountName
 src_invoice_hospitals_df2 = src_invoice_hospitals_df2.rename(columns={'AccountName_original': 'AccountName'})
 
 tgt_hospital_df = pd.read_sql('SELECT DISTINCT id as hospital_id,UPPER(LTRIM(RTRIM(name))) as AccountName_Upper FROM hospitals GROUP BY UPPER(LTRIM(RTRIM(name)))', myconnection)
-src_invoice_hospitals_df2['AccountName_Upper'] = src_invoice_hospitals_df2['AccountName'].str.upper().str.strip()
+src_invoice_hospitals_df2['AccountName_Upper'] = src_invoice_hospitals_df2['AccountName'].astype(str).str.upper().str.strip()
 landing_invoice_hospital_df = src_invoice_hospitals_df2.merge(tgt_hospital_df, on='AccountName_Upper', how='left')
 landing_invoice_hospital_df = landing_invoice_hospital_df.drop(columns=['AccountName_Upper'])
 landing_invoice_hospital_df['Notes'] = landing_invoice_hospital_df.apply(lambda x: f"paid by {x['AccountName']}" if pd.notna(x['AccountName']) else '', axis=1)

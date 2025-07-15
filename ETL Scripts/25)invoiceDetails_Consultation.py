@@ -13,17 +13,23 @@ tgt_invoice_df = pd.read_sql('SELECT id as tgt_invoice_id,PPM_Invoice_Id FROM in
 tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(int)
 
 src_consultation = 'SELECT * FROM Consultations'
-src_consultation_df = pd.read_sql(src_consultation, get_src_accessdb_connection())
+try:
+    src_consultation_df = pd.read_sql(src_consultation, get_src_accessdb2_connection())
+except:
+    src_consultation_df = pd.read_sql(src_consultation, get_src_accessdb_connection())
 src_consultation_df = src_consultation_df[src_consultation_df['InvoiceNumber'] != 0]
 src_consultation_df['InvoiceNumber'] = src_consultation_df['InvoiceNumber'].astype(int)
 src_consultation_df = src_consultation_df[['ConsID','InvoiceNumber','ConsultationDate','ConsultationCode','ConsultationCharge','VATRate','VATAmount']]
 
-landing_consultation_df = dd.merge(src_consultation_df, tgt_invoice_df, left_on='InvoiceNumber', right_on='PPM_Invoice_Id', how='inner')
+landing_consultation_df = pd.merge(src_consultation_df, tgt_invoice_df, left_on='InvoiceNumber', right_on='PPM_Invoice_Id', how='inner')
 landing_consultation_df = landing_consultation_df.rename(columns={'tgt_invoice_id': 'invoice_id'})
 landing_consultation_df = landing_consultation_df.drop(columns=['PPM_Invoice_Id', 'InvoiceNumber'])
 
 src_consultation_trans = 'SELECT * FROM ConsultationTrans'
-src_consultation_trans_df = pd.read_sql(src_consultation_trans, get_src_accessdb_connection())
+try:
+    src_consultation_trans_df = pd.read_sql(src_consultation_trans, get_src_accessdb_connection())
+except:
+    src_consultation_trans_df = pd.read_sql(src_consultation_trans, get_src_accessdb2_connection())
 src_consultation_trans_df = src_consultation_trans_df[['ConsTransID','ConsultationDate','InterventionCode','InterventionCharge','VATRate','VATAmount']]
 src_consultation_trans_df = src_consultation_trans_df.rename(columns={'ConsTransID': 'ConsID','InterventionCode':'ConsultationCode','InterventionCharge': 'ConsultationCharge'})
 

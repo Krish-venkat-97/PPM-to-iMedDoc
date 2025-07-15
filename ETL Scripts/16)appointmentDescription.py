@@ -21,7 +21,11 @@ target_cursor.execute(query_4)
 myconnection.commit()
 
 src_appt_desc = 'SELECT * FROM DiaryEx'
-src_appt_desc_df = pd.read_sql(src_appt_desc, get_src_accessdb_connection())
+
+try:
+    src_appt_desc_df = pd.read_sql(src_appt_desc, get_src_accessdb2_connection())
+except:
+    src_appt_desc_df = pd.read_sql(src_appt_desc, get_src_accessdb_connection())
 
 appt_type_desc_df = src_appt_desc_df[src_appt_desc_df['AppointmentType'].str.upper().str.strip() != 'THEATRE']
 surgery_type_desc_df = src_appt_desc_df[src_appt_desc_df['AppointmentType'].str.upper().str.strip() == 'THEATRE']

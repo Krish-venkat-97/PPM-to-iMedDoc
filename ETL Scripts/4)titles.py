@@ -10,16 +10,32 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_patient_titles = 'SELECT DISTINCT Title FROM CodePatients'
-src_patient_titles_df = pd.read_sql(src_patient_titles, get_src_accessdb_connection())
+
+try:    
+    src_patient_titles_df = pd.read_sql(src_patient_titles, get_src_accessdb_connection())
+except:
+    src_patient_titles_df = pd.read_sql(src_patient_titles, get_src_accessdb2_connection())
 
 src_gp_titles = 'SELECT DISTINCT GPTitle FROM CodeGPs'
-src_gp_titles_df = pd.read_sql(src_gp_titles, get_src_accessdb2_connection())
+
+try:
+    src_gp_titles_df = pd.read_sql(src_gp_titles, get_src_accessdb2_connection())
+except:
+    src_gp_titles_df = pd.read_sql(src_gp_titles, get_src_accessdb_connection())
 
 sr_solicitor_titles = 'SELECT DISTINCT SolicitorsTitle FROM CodeSolicitors'
-src_solicitor_titles_df = pd.read_sql(sr_solicitor_titles, get_src_accessdb2_connection())
+
+try:
+    src_solicitor_titles_df = pd.read_sql(sr_solicitor_titles, get_src_accessdb_connection())
+except:
+    src_solicitor_titles_df = pd.read_sql(sr_solicitor_titles, get_src_accessdb2_connection())
 
 sr_anesthetist_titles = 'SELECT DISTINCT AnaesthetistTitle FROM CodeAnaesthetists'
-sr_anesthetist_titles_df = pd.read_sql(sr_anesthetist_titles, get_src_accessdb2_connection())
+
+try:
+    sr_anesthetist_titles_df = pd.read_sql(sr_anesthetist_titles, get_src_accessdb2_connection())
+except:
+    sr_anesthetist_titles_df = pd.read_sql(sr_anesthetist_titles, get_src_accessdb_connection())
 
 # Combining all distinct titles into a single DataFrame
 titles_df = pd.DataFrame({

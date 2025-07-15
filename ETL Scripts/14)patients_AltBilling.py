@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_invoices = 'SELECT * FROM InvoiceHeadSummary WHERE InvoiceTo = 2'
-src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+
+try:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+except:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb2_connection())
 
 src_alt_billing_df = src_invoices_df[['PatientCode', 'AccountName', 'AccountAddress1', 'AccountAddress2', 'AccountAddress3', 'AccountAddress4', 'AccountAddress5', 'AccountPostCode', 'AccountContactTelNo']]
 src_alt_billing_df = src_alt_billing_df.drop_duplicates(subset=['PatientCode']).reset_index(drop=True)

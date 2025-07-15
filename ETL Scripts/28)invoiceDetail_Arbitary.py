@@ -10,7 +10,10 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_invoices = 'SELECT * FROM InvoiceHeadSummary'
-src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+try:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb_connection())
+except:
+    src_invoices_df = pd.read_sql(src_invoices, get_src_accessdb2_connection())
 src_invoices_df = src_invoices_df[src_invoices_df['Invoice Number'] != 0]
 src_arbitary_invoice_df = src_invoices_df[src_invoices_df['Txt1']=='AI']
 
@@ -20,7 +23,7 @@ tgt_invoice = 'SELECT id as invoice_id,invoice_date,PPM_Invoice_Id FROM invoices
 tgt_invoice_df = pd.read_sql(tgt_invoice, myconnection)
 
 tgt_invoice_df['PPM_Invoice_Id'] = tgt_invoice_df['PPM_Invoice_Id'].astype(int)
-src_arbitary_invoice_df1 = dd.merge(src_arbitary_invoice_df1, tgt_invoice_df, left_on='Invoice Number', right_on='PPM_Invoice_Id', how='inner')
+src_arbitary_invoice_df1 = pd.merge(src_arbitary_invoice_df1, tgt_invoice_df, left_on='Invoice Number', right_on='PPM_Invoice_Id', how='inner')
 src_arbitary_invoice_df1['amount'] = src_arbitary_invoice_df1['TotalValue'] - src_arbitary_invoice_df1['VATAmount']
 
 #-----------------------------invoice id generation-----------------------------

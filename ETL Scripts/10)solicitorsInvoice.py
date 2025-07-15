@@ -10,16 +10,25 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_solicitor = 'SELECT DISTINCT AccountName,AccountAddress1,AccountAddress2,AccountAddress3,AccountAddress4,AccountAddress5,AccountPostCode,AccountContactTelNo FROM InvoiceHeadSummary WHERE InvoiceTo = 6'
-src_solicitor_df = pd.read_sql(src_solicitor, get_src_accessdb_connection())
+
+try:
+    src_solicitor_df = pd.read_sql(src_solicitor, get_src_accessdb_connection())
+except:
+    src_solicitor_df = pd.read_sql(src_solicitor, get_src_accessdb2_connection())
 
 src_solicitor_df = src_solicitor_df.drop_duplicates(subset=['AccountName'])
 
-def firstNameAndSurname(row):
-    first_name = row['AccountName'].split(' ')[0] if pd.notna(row['AccountName']) else ''
-    sur_name = ' '.join(row['AccountName'].split(' ')[1:]) if pd.notna(row['AccountName']) and len(row['AccountName'].split(' ')) > 1 else ''
-    return pd.Series([first_name, sur_name])
+if src_solicitor_df.empty:
+   src_solicitor_df['first_name'] = None
+   src_solicitor_df['sur_name'] = None
 
-src_solicitor_df[['first_name', 'sur_name']] = src_solicitor_df.apply(firstNameAndSurname, axis=1)
+else:
+    def firstNameAndSurname(row):
+        first_name = row['AccountName'].split(' ')[0] if pd.notna(row['AccountName']) else ''
+        sur_name = ' '.join(row['AccountName'].split(' ')[1:]) if pd.notna(row['AccountName']) and len(row['AccountName'].split(' ')) > 1 else ''
+        return pd.Series([first_name, sur_name])
+
+    src_solicitor_df[['first_name', 'sur_name']] = src_solicitor_df.apply(firstNameAndSurname, axis=1)
 
 #tgt_solicitor_df = pd.read_sql('SELECT DISTINCT UPPER(LTRIM(RTRIM(PPM_solicitor))) as PPM_solicitor FROM contacts', myconnection)
 

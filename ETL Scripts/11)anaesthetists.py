@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_anaesth = 'SELECT * FROM CodeAnaesthetists'
-src_anaesth_df = pd.read_sql(src_anaesth, get_src_accessdb2_connection())
+
+try:
+    src_anaesth_df = pd.read_sql(src_anaesth, get_src_accessdb2_connection())
+except:
+    src_anaesth_df = pd.read_sql(src_anaesth, get_src_accessdb_connection())
 
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
@@ -31,7 +35,7 @@ src_anaesth_df.insert(0,'anaesth_id',range(max_id,max_id+len(src_anaesth_df)))
 tgt_title = 'SELECT id as title_id, name as title_name FROM titles'
 tgt_title_df = pd.read_sql(tgt_title, myconnection)
 
-anaesth_df = dd.merge(src_anaesth_df, tgt_title_df, left_on='AnaesthetistTitle', right_on='title_name', how='left')
+anaesth_df = pd.merge(src_anaesth_df, tgt_title_df, left_on='AnaesthetistTitle', right_on='title_name', how='left')
 anaesth_df['title_id'] = anaesth_df['title_id'].fillna(0).astype(int)
 
 anaesth_df['display_name'] =  (anaesth_df['AnaesthetistForename'].fillna('') + ' ' + anaesth_df['AnaesthetistName']).str.strip()

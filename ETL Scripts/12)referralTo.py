@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_referral = 'SELECT * FROM CodeSpecialists'
-src_referral_df = pd.read_sql(src_referral, get_src_accessdb2_connection())
+
+try:
+    src_referral_df = pd.read_sql(src_referral, get_src_accessdb2_connection())
+except:
+    src_referral_df = pd.read_sql(src_referral, get_src_accessdb_connection())
 
 #Adding Source identifier column in target
 query_1 = "SET sql_mode = ''"
@@ -31,7 +35,7 @@ src_referral_df.insert(0,'referral_id',range(max_id,max_id+len(src_referral_df))
 tgt_title = 'SELECT id as title_id, name as title_name FROM titles'
 tgt_title_df = pd.read_sql(tgt_title, myconnection)
 
-referral_df = dd.merge(src_referral_df, tgt_title_df, left_on='SpecialistTitle', right_on='title_name', how='left')
+referral_df = pd.merge(src_referral_df, tgt_title_df, left_on='SpecialistTitle', right_on='title_name', how='left')
 referral_df['title_id'] = referral_df['title_id'].fillna(0).astype(int)
 
 referral_df['display_name'] =  (referral_df['SpecialistForeName'].fillna('') + ' ' + referral_df['SpecialistName']).str.strip()

@@ -10,7 +10,11 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_appointment = 'SELECT * FROM DiaryEx'
-src_appointment_df = pd.read_sql(src_appointment, get_src_accessdb_connection())
+
+try:
+    src_appointment_df = pd.read_sql(src_appointment, get_src_accessdb_connection())
+except:
+    src_appointment_df = pd.read_sql(src_appointment, get_src_accessdb2_connection())
 
 src_appointment_df1 = src_appointment_df[src_appointment_df['AppointmentType'].str.upper().str.strip() != 'THEATRE']
 src_appointment_df1['AppointmentType'] = src_appointment_df1['AppointmentType'].fillna('Not defined AppointmentType').str.strip()
@@ -58,25 +62,25 @@ src_appointment_df1['EndTime'] = src_appointment_df1.apply(getEndTime, axis=1)
 src_appointment_df1['LocationCode'] = src_appointment_df1['LocationCode'].astype(int)
 tgt_hospital_df = pd.read_sql("SELECT id as hospital_id,PPM_Hospital_Id FROM hospitals WHERE PPM_Hospital_Id IS NOT NULL", myconnection)
 tgt_hospital_df['PPM_Hospital_Id'] = tgt_hospital_df['PPM_Hospital_Id'].astype(int)
-landing_appointment_df1 = dd.merge(src_appointment_df1,tgt_hospital_df, left_on='LocationCode', right_on='PPM_Hospital_Id', how='left')
+landing_appointment_df1 = pd.merge(src_appointment_df1,tgt_hospital_df, left_on='LocationCode', right_on='PPM_Hospital_Id', how='left')
 
 #---------------------appointment type mapping---------------------
 landing_appointment_df1['AppointmentType_Upper'] = landing_appointment_df1['AppointmentType'].str.upper().str.strip()
 tgt_appointment_description_df = pd.read_sql("SELECT id as appointment_type_id,UPPER(LTRIM(RTRIM(name))) as AppointmentType_Upper FROM appointment_descriptions WHERE PPM_ApptDesc_Id IS NOT NULL", myconnection)
 tgt_appointment_description_df['AppointmentType_Upper'] = tgt_appointment_description_df['AppointmentType_Upper'].astype(str)
-landing_appointment_df2 = dd.merge(landing_appointment_df1, tgt_appointment_description_df, on='AppointmentType_Upper', how='left')
+landing_appointment_df2 = pd.merge(landing_appointment_df1, tgt_appointment_description_df, on='AppointmentType_Upper', how='left')
 
 #---------------------doctor mapping---------------------
 landing_appointment_df2['ResourceCode'] = landing_appointment_df2['ResourceCode'].astype(int)
 tgt_doctor_df = pd.read_sql("SELECT id as doctor_id,PPM_Doctor_Id FROM doctors WHERE PPM_Doctor_Id IS NOT NULL", myconnection)
 tgt_doctor_df['PPM_Doctor_Id'] = tgt_doctor_df['PPM_Doctor_Id'].astype(int)
-landing_appointment_df3 = dd.merge(landing_appointment_df2, tgt_doctor_df, left_on='ResourceCode', right_on='PPM_Doctor_Id', how='left')
+landing_appointment_df3 = pd.merge(landing_appointment_df2, tgt_doctor_df, left_on='ResourceCode', right_on='PPM_Doctor_Id', how='left')
 
 #---------------------patient mapping---------------------
 landing_appointment_df3['PatientCode'] = landing_appointment_df3['PatientCode'].astype(int)
 tgt_patient_df = pd.read_sql("SELECT id as patient_id,PPM_Patient_Id FROM patients WHERE PPM_Patient_Id IS NOT NULL", myconnection)
 tgt_patient_df['PPM_Patient_Id'] = tgt_patient_df['PPM_Patient_Id'].astype(int)
-landing_appointment_df4 = dd.merge(landing_appointment_df3, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
+landing_appointment_df4 = pd.merge(landing_appointment_df3, tgt_patient_df, left_on='PatientCode', right_on='PPM_Patient_Id', how='left')
 
 #---------------------appointment status mapping---------------------
 landing_appointment_df4['appointment_status_id'] = landing_appointment_df4.apply(
@@ -91,7 +95,7 @@ landing_appointment_df5 = landing_appointment_df4[landing_appointment_df4['patie
 landing_appointment_df5['patient_id'] = landing_appointment_df5['patient_id'].astype(int)
 tgt_episode_df = pd.read_sql("SELECT id as episode_id,patient_id FROM episodes WHERE episodes.name = 'General'", myconnection)
 tgt_episode_df['patient_id'] = tgt_episode_df['patient_id'].astype(int)
-landing_appointment_df5 = dd.merge(landing_appointment_df5, tgt_episode_df, on='patient_id', how='left')
+landing_appointment_df5 = pd.merge(landing_appointment_df5, tgt_episode_df, on='patient_id', how='left')
 
 #---------------------Missing values handling---------------------
 landing_appointment_df5['doctor_id'] = landing_appointment_df5['doctor_id'].fillna(1).astype(int)

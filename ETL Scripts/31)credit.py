@@ -10,7 +10,10 @@ target_cursor = myconnection.cursor()
 warnings.filterwarnings("ignore")
 
 src_payrec = 'SELECT * FROM "Payments Received"'
-src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb_connection())
+try:
+    src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb2_connection())
+except: 
+    src_payrec_df = pd.read_sql(src_payrec, get_src_accessdb_connection())
 
 src_credit_df = src_payrec_df[src_payrec_df['PaymentMethod'].str.lower() == 'credit']
 src_credit_df1 = src_credit_df[['InvoiceNo', 'ReceiptNo','PaymentDate','AmountPaid','Spare2']]
